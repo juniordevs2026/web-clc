@@ -2,6 +2,7 @@ import express from 'express';
 import cors from 'cors';
 import bcrypt from 'bcryptjs';
 import jwt from 'jsonwebtoken';
+import { randomBytes } from 'node:crypto';
 import { z } from 'zod';
 import { pool } from './db.js';
 
@@ -12,7 +13,9 @@ app.use(express.json());
 const asyncRoute = (handler: express.RequestHandler): express.RequestHandler => (req, res, next) => {
   Promise.resolve(handler(req, res, next)).catch(next);
 };
-const JWT_SECRET = process.env.JWT_SECRET ?? 'clc-development-secret-change-me';
+const JWT_SECRET = process.env.JWT_SECRET ?? (process.env.NODE_ENV === 'production'
+  ? (() => { throw new Error('JWT_SECRET wajib dikonfigurasi di production.'); })()
+  : randomBytes(32).toString('hex'));
 type AuthRequest = express.Request & { user?: { id: number; role: string } };
 const requireAuth = (roles?: string[]): express.RequestHandler => (req, res, next) => {
   const header = req.headers.authorization;
@@ -147,8 +150,10 @@ app.get('/api/users', requireAdmin, asyncRoute(async (req, res) => {
   res.json(rows);
 }));
 
-app.get('/api/users/:id', asyncRoute(async (req, res) => {
+app.get('/api/users/:id', requireAuth(), asyncRoute(async (req, res) => {
   const id = z.coerce.number().int().positive().parse(req.params.id);
+  const auth = (req as AuthRequest).user;
+  if (auth?.id !== id && auth?.role !== 'admin') return res.status(403).json({ message: 'Kamu hanya dapat melihat data pengguna sendiri.' });
   const { rows } = await pool.query('SELECT id, nama, username, email, role, kelas FROM users WHERE id = $1', [id]);
   if (!rows.length) return res.status(404).json({ message: 'Pengguna tidak ditemukan.' });
   res.json(rows[0]);
@@ -265,6 +270,8 @@ app.get('/api/dashboard', requireAuth(), asyncRoute(async (_req, res) => {
 
 app.get('/api/classes/:guruId', requireAuth(['guru']), asyncRoute(async (req, res) => {
   const guruId = z.coerce.number().int().positive().parse(req.params.guruId);
+  const auth = (req as AuthRequest).user;
+  if (auth?.id !== guruId) return res.status(403).json({ message: 'Kamu hanya dapat melihat kelas yang kamu ampu.' });
   const { rows } = await pool.query(`
     SELECT mp.id, mp.nama_pelajaran, mp.deskripsi, mp.kapasitas, mp.kelas,
       jm.hari, TO_CHAR(jm.jam_mulai, 'HH24:MI') AS jam_mulai, TO_CHAR(jm.jam_selesai, 'HH24:MI') AS jam_selesai, jm.ruang,
@@ -281,12 +288,16 @@ app.get('/api/classes/:guruId', requireAuth(['guru']), asyncRoute(async (req, re
 
 app.get('/api/teachers/:teacherId/schedule', requireAuth(['guru']), asyncRoute(async (req, res) => {
   const teacherId = z.coerce.number().int().positive().parse(req.params.teacherId);
+  const auth = (req as AuthRequest).user;
+  if (auth?.id !== teacherId) return res.status(403).json({ message: 'Kamu hanya dapat melihat jadwalmu sendiri.' });
   const { rows } = await pool.query(`SELECT jm.id, jm.mata_pelajaran_id, mp.nama_pelajaran, mp.kelas, jm.hari, TO_CHAR(jm.jam_mulai, 'HH24:MI') AS jam_mulai, TO_CHAR(jm.jam_selesai, 'HH24:MI') AS jam_selesai, jm.ruang, COUNT(bp.id)::int AS terdaftar, mp.kapasitas FROM jadwal_mengajar jm JOIN mata_pelajaran mp ON mp.id = jm.mata_pelajaran_id LEFT JOIN booking_pelajaran bp ON bp.mata_pelajaran_id = mp.id WHERE mp.guru_id = $1 GROUP BY jm.id, mp.id ORDER BY CASE jm.hari WHEN 'Senin' THEN 1 WHEN 'Selasa' THEN 2 WHEN 'Rabu' THEN 3 WHEN 'Kamis' THEN 4 WHEN 'Jumat' THEN 5 ELSE 6 END, jm.jam_mulai`, [teacherId]);
   res.json(rows);
 }));
 
 app.get('/api/students/:studentId/bookings', requireAuth(['siswa']), asyncRoute(async (req, res) => {
   const studentId = z.coerce.number().int().positive().parse(req.params.studentId);
+  const auth = (req as AuthRequest).user;
+  if (auth?.id !== studentId) return res.status(403).json({ message: 'Kamu hanya dapat melihat pendaftaranmu sendiri.' });
   const { rows } = await pool.query(`
     SELECT bp.id, bp.mata_pelajaran_id, bp.tanggal_booking, mp.nama_pelajaran, u.nama AS guru
     FROM booking_pelajaran bp
@@ -299,6 +310,8 @@ app.get('/api/students/:studentId/bookings', requireAuth(['siswa']), asyncRoute(
 
 app.get('/api/students/:studentId/team', requireAuth(['siswa']), asyncRoute(async (req, res) => {
   const studentId = z.coerce.number().int().positive().parse(req.params.studentId);
+  const auth = (req as AuthRequest).user;
+  if (auth?.id !== studentId) return res.status(403).json({ message: 'Kamu hanya dapat melihat Team-mu sendiri.' });
   const { rows } = await pool.query(`
     SELECT mp.id, mp.nama_pelajaran, mp.kelas, mp.kapasitas,
       COUNT(bp.id)::int AS terdaftar,
@@ -315,6 +328,8 @@ app.get('/api/students/:studentId/team', requireAuth(['siswa']), asyncRoute(asyn
 
 app.get('/api/students/:studentId/schedule', requireAuth(['siswa']), asyncRoute(async (req, res) => {
   const studentId = z.coerce.number().int().positive().parse(req.params.studentId);
+  const auth = (req as AuthRequest).user;
+  if (auth?.id !== studentId) return res.status(403).json({ message: 'Kamu hanya dapat melihat jadwalmu sendiri.' });
   const { rows } = await pool.query(`
     SELECT mp.id, mp.nama_pelajaran, mp.kelas, mp.kapasitas, guru.nama AS guru,
       jm.hari, TO_CHAR(jm.jam_mulai, 'HH24:MI') AS jam_mulai, TO_CHAR(jm.jam_selesai, 'HH24:MI') AS jam_selesai, jm.ruang,
@@ -334,6 +349,8 @@ app.get('/api/students/:studentId/schedule', requireAuth(['siswa']), asyncRoute(
 
 app.post('/api/proposals', requireAuth(['siswa']), asyncRoute(async (req, res) => {
   const input = z.object({ siswaId: z.number().int().positive(), mataPelajaranId: z.number().int().positive(), judul: z.string().min(3).max(180), deskripsi: z.string().min(10) }).parse(req.body);
+  const auth = (req as AuthRequest).user;
+  if (auth?.id !== input.siswaId) return res.status(403).json({ message: 'Proposal harus diajukan oleh akun siswa yang sedang login.' });
   const allowed = await pool.query('SELECT 1 FROM booking_pelajaran WHERE siswa_id = $1 AND mata_pelajaran_id = $2', [input.siswaId, input.mataPelajaranId]);
   if (!allowed.rowCount) return res.status(403).json({ message: 'Hanya anggota Team yang dapat mengajukan proposal.' });
   const { rows } = await pool.query('INSERT INTO proposal_program (mata_pelajaran_id, pengusul_id, judul, deskripsi) VALUES ($1, $2, $3, $4) RETURNING id, judul, deskripsi, status, feedback, created_at', [input.mataPelajaranId, input.siswaId, input.judul, input.deskripsi]);
@@ -342,6 +359,8 @@ app.post('/api/proposals', requireAuth(['siswa']), asyncRoute(async (req, res) =
 
 app.get('/api/teachers/:teacherId/proposals', requireAuth(['guru']), asyncRoute(async (req, res) => {
   const teacherId = z.coerce.number().int().positive().parse(req.params.teacherId);
+  const auth = (req as AuthRequest).user;
+  if (auth?.id !== teacherId) return res.status(403).json({ message: 'Kamu hanya dapat melihat proposal untuk kelasmu sendiri.' });
   const { rows } = await pool.query(`
     SELECT pp.id, pp.judul, pp.deskripsi, pp.status, pp.feedback, pp.created_at,
       mp.id AS mata_pelajaran_id, mp.nama_pelajaran, mp.kelas, pengusul.nama AS pengusul,
@@ -357,6 +376,8 @@ app.get('/api/teachers/:teacherId/proposals', requireAuth(['guru']), asyncRoute(
 app.put('/api/proposals/:id', requireAuth(['guru']), asyncRoute(async (req, res) => {
   const id = z.coerce.number().int().positive().parse(req.params.id);
   const input = z.object({ guruId: z.number().int().positive(), status: z.enum(['disetujui', 'ditolak']), feedback: z.string().min(3).max(1000) }).parse(req.body);
+  const auth = (req as AuthRequest).user;
+  if (auth?.id !== input.guruId) return res.status(403).json({ message: 'Proposal hanya dapat diproses oleh guru yang sedang login.' });
   const result = await pool.query(`UPDATE proposal_program pp SET status = $1, feedback = $2, updated_at = NOW() FROM mata_pelajaran mp WHERE pp.id = $3 AND mp.id = pp.mata_pelajaran_id AND mp.guru_id = $4 RETURNING pp.id, pp.status, pp.feedback`, [input.status, input.feedback, id, input.guruId]);
   if (!result.rowCount) return res.status(403).json({ message: 'Proposal tidak ditemukan atau bukan tanggung jawab guru ini.' });
   res.json(result.rows[0]);
@@ -364,6 +385,8 @@ app.put('/api/proposals/:id', requireAuth(['guru']), asyncRoute(async (req, res)
 
 app.post('/api/bookings', requireAuth(['siswa']), asyncRoute(async (req, res) => {
   const input = z.object({ siswaId: z.number().int().positive(), mataPelajaranId: z.number().int().positive() }).parse(req.body);
+  const auth = (req as AuthRequest).user;
+  if (auth?.id !== input.siswaId) return res.status(403).json({ message: 'Pendaftaran harus dilakukan oleh akun siswa yang sedang login.' });
   const client = await pool.connect();
   try {
     await client.query('BEGIN');

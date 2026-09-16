@@ -16,6 +16,8 @@ npm run dev
 
 Web tersedia di `http://localhost:5173`, API di `http://localhost:4000`.
 
+Untuk deployment production, tetapkan `JWT_SECRET` yang panjang dan acak pada environment API. Saat development tanpa konfigurasi tersebut, API membuat secret acak setiap kali proses dimulai.
+
 Akun demo ditanam di `infra/init.sql`. Login menggunakan username dan password `demo`:
 - Siswa: `nadia` / `demo`
 - Guru: `alya` / `demo`
@@ -33,7 +35,7 @@ Master data kelas bawaan terdiri dari:
 - Kelas IX Sion
 - Kelas IX Hermon
 
-Setiap kelas memiliki mata pelajaran sendiri dan siswa hanya melihat mata pelajaran yang sesuai dengan kelasnya.
+Semua mata pelajaran tersedia untuk setiap kelas. Database menyimpan satu program per kombinasi mata pelajaran dan kelas agar booking tetap terisolasi sesuai kelas siswa.
 
 ## Administrator
 
