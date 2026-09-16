@@ -1,0 +1,81 @@
+Berikut adalah rangkuman lengkap kerangka sistem website CLC (Character Learning Center) Anda, mulai dari basis data, logika sistem, hingga detail rancangan antarmuka (UI/UX) untuk Guru dan Siswa. Format ini disusun agar mudah Anda salin (copy) dan jadikan acuan saat mulai melakukan coding.
+
+RANCANGAN SISTEM WEBSITE CLC (CHARACTER LEARNING CENTER)
+
+1. Struktur Basis Data (Database Schema)
+
+Sistem menggunakan 3 tabel utama untuk mengakomodasi 4 peran dan aturan booking maksimal 3 siswa per mata pelajaran serta maksimal 3 mata pelajaran per siswa dalam kelasnya.
+
+Tabel users
+
+Menyimpan semua data pengguna.
+
+Kolom: id, nama, email, password, role (enum: 'admin', 'kepala_sekolah', 'guru', 'siswa').
+
+Tabel mata_pelajaran
+
+Menyimpan data mata pelajaran yang dibuat oleh admin.
+
+Kolom: id, nama_pelajaran, deskripsi, guru_id (Foreign Key ke tabel users dengan role 'guru'), kapasitas (set default: 3).
+
+Tabel booking_pelajaran (Tabel Pivot/Transaksi)
+
+Menyimpan riwayat pendaftaran siswa ke mata pelajaran.
+
+Kolom: id, siswa_id (Foreign Key ke users), mata_pelajaran_id (Foreign Key ke mata_pelajaran), tanggal_booking.
+
+2. Pembagian Peran dan Hak Akses (Role-Based Access)
+
+Admin: Memiliki hak penuh (CRUD) untuk membuat akun (Kepala Sekolah, Guru, Siswa), membuat mata pelajaran, dan menetapkan Guru pada mata pelajaran tersebut.
+
+Kepala Sekolah: Akses View Only ke dashboard pelaporan untuk melihat total siswa, guru, mata pelajaran yang berjalan, dan data pendaftaran.
+
+Guru: Akses untuk memonitor kelas yang dibebankan kepada mereka dan melihat daftar 3 siswa yang berhasil mendaftar.
+
+Siswa: Akses ke katalog program untuk melakukan booking (pendaftaran) mata pelajaran CLC yang masih memiliki kuota.
+
+3. Logika Inti: Sistem Booking (Limit 3 Siswa)
+
+Logika validasi pada Controller saat siswa menekan tombol "Daftar":
+
+Siswa memilih mata pelajaran "A".
+
+Sistem menjalankan kueri perhitungan jumlah data di tabel booking_pelajaran dengan mata_pelajaran_id = "A".
+
+Validasi:
+
+Jika count < 3: Data di-insert ke tabel, pendaftaran sukses.
+
+Jika count >= 3: Insert dibatalkan, muncul pesan error (kuota penuh).
+
+4. Kerangka Antarmuka (UI/UX & Front-End)
+
+Sistem menggunakan desain yang bersih, ringan (minimalist), dan berfokus pada fungsi (function-first).
+
+A. Struktur Navigasi Umum
+
+/login : Portal otentikasi tunggal dengan deteksi role otomatis.
+
+/admin/dashboard : Kelola Pengguna, Kelola Pelajaran.
+
+/kepsek/laporan : Ringkasan Program, Statistik CLC.
+
+B. Detail Visualisasi Panel Guru (/guru/kelola-kelas)
+
+Menu Navigasi (Sidebar): Menampilkan menu yang sangat spesifik seperti "Jadwal Saya", "Kelola Kelas", atau "Daftar Siswa".
+
+Kartu Informasi Kelas (Assigned Classes): Menampilkan card detail mata pelajaran CLC yang diampu oleh guru yang sedang login.
+
+Indikator Kuota: Menampilkan teks "3/3 Enrolled Students" sebagai penanda visual yang jelas bahwa kelas tersebut sudah penuh.
+
+Tabel Daftar Siswa: Menampilkan tabel berisi maksimal 3 baris nama siswa yang berhasil masuk ke dalam kelas tersebut, lengkap dengan ID siswa dan statusnya untuk memudahkan pemantauan.
+
+C. Detail Visualisasi Panel Siswa (/siswa/pilih-program)
+
+Dashboard Pendaftaran: Menampilkan halaman katalog program CLC yang rapi dan mudah dibaca.
+
+Katalog Program (Course Cards): Setiap kartu pelajaran menampilkan nama pelajaran, deskripsi singkat, dan nama Guru pengampu.
+
+Indikator Kuota Terbuka (Tersedia): Jika kuota masih ada (misal: "2/3"), tombol [ Daftar ] akan berwarna biru (aktif) dan bisa diklik oleh siswa.
+
+Indikator Kuota Penuh (Terkunci): Sesuai dengan aturan maksimal 3 siswa, jika kuota sudah penuh, status pada kartu akan berubah menjadi "3/3 (PENUH)". Sistem secara otomatis akan me-nonaktifkan tombol daftar menjadi berwarna abu-abu (disabled), sehingga siswa wajib memilih mata pelajaran lain yang masih tersedia.

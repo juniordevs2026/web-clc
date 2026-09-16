@@ -1,0 +1,8 @@
+{
+    "chat.tools.terminal.autoApprove": {
+        "/^node -e \"async function main\\(\\)\\{for\\(const username of \\['admin','alya','nadia','ratna'\\]\\)\\{const r=await fetch\\('http://localhost:4000/api/login',\\{method:'POST',headers:\\{'Content-Type':'application/json'\\},body:JSON\\.stringify\\(\\{username,password:'demo'\\}\\)\\}\\); console\\.log\\(username,r\\.status,await r\\.text\\(\\)\\)\\}\\}main\\(\\)\"$/": {
+            "approve": true,
+            "matchCommandLine": true
+        }
+    }
+}

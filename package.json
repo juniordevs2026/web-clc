@@ -1,0 +1,13 @@
+{
+  "name": "clc-platform",
+  "private": true,
+  "scripts": {
+    "dev": "concurrently \"npm run dev --workspace apps/api\" \"npm run dev --workspace apps/web\"",
+    "build": "npm run build --workspace apps/api && npm run build --workspace apps/web",
+    "db:up": "podman compose -f infra/compose.yml up -d",
+    "db:down": "podman compose -f infra/compose.yml down",
+    "db:logs": "podman compose -f infra/compose.yml logs -f db"
+  },
+  "workspaces": ["apps/api", "apps/web"],
+  "devDependencies": { "concurrently": "^9.1.2" }
+}

@@ -1,0 +1,21 @@
+services:
+  db:
+    image: docker.io/library/postgres:16-alpine
+    container_name: db-clc
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: clc
+      POSTGRES_USER: clc_app
+      POSTGRES_PASSWORD: clc_dev_password
+    ports:
+      - "5432:5432"
+    volumes:
+      - clc_pgdata:/var/lib/postgresql/data
+      - ./init.sql:/docker-entrypoint-initdb.d/01-init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U clc_app -d clc"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+volumes:
+  clc_pgdata:
