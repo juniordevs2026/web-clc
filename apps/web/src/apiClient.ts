@@ -1,4 +1,4 @@
-export const API = 'http://localhost:4000/api';
+export const API = 'https://web-clc-api.vercel.app/api';
 
 export function authHeaders(extra: Record<string, string> = {}) {
   const token = sessionStorage.getItem('clc_token');
