@@ -53,7 +53,7 @@ Get-Content .\clc-backup.sql | podman exec -i db-clc psql -U clc_app -d clc
 Jika dump dibuat dalam format custom, gunakan:
 
 ```powershell
-podman exec -i db-clc pg_restore -U clc_app -d clc --clean --if-exists < .\clc-backup.dump
+cmd /c "podman exec -i db-clc pg_restore -U clc_app -d clc --clean --if-exists < clc-backup.dump"
 ```
 
 Setelah restore, pastikan API dapat membaca data:
@@ -70,7 +70,7 @@ file `.env`. Backup database berisi data akun dan harus disimpan di lokasi aman.
 Contoh backup database:
 
 ```powershell
-podman exec db-clc pg_dump -U clc_app -d clc --format=custom | Set-Content -Encoding Byte .\clc-backup.dump
+cmd /c "podman exec db-clc pg_dump -U clc_app -d clc --format=custom > clc-backup.dump"
 ```
 
 Simpan arsip source dan dump database secara terpisah, dengan akses terbatas.
