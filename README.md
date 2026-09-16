@@ -4,6 +4,8 @@ Portal Character Learning Center: katalog program, booking siswa dengan kapasita
 
 Dashboard siswa, guru, dan kepala sekolah menggunakan banner karakter CLC yang sama. Aset banner disimpan dalam format JPEG terkompresi di `apps/web/public/student-hero.jpg` agar loading tetap ringan. Identitas website (nama dan logo) dikelola dari menu Pengaturan dan ditampilkan kembali pada Homepage serta navigasi Dashboard.
 
+Homepage menggunakan gambar Hero CLC sebagai background responsif dengan overlay biru agar teks tetap mudah dibaca pada berbagai ukuran layar. Section statistik dan kartu metode menggunakan efek emboss modern. Halaman About School juga memiliki ilustrasi komunitas belajar dalam format SVG yang ringan, sedangkan kartu statistiknya menggunakan gaya visual yang sama.
+
 ## Jalankan dengan Podman
 
 ```powershell
@@ -57,6 +59,26 @@ Ringkasan Admin menampilkan metrik total akun, mata pelajaran, pendaftaran, dan 
 ### Pengaturan identitas
 
 Menu `Pengaturan` pada Admin dapat digunakan untuk mengubah nama website dan logo sekolah. Perubahan tersebut dibaca dari database dan ditampilkan pada Homepage publik serta sidebar Dashboard tanpa perlu mengubah kode sumber.
+
+### Menu Pages
+
+Menu `Pages` pada Admin digunakan untuk mengubah konten teks halaman publik:
+
+- `Homepage`
+- `Profil CLC`
+- `About School`
+- `Program`
+
+Setiap halaman menyediakan editor untuk judul, deskripsi pembuka, judul section utama, dan isi section utama. Perubahan disimpan ke database dan langsung digunakan oleh halaman publik.
+
+### Aset visual publik
+
+- `apps/web/public/homepage-hero.jpg`: background Hero Homepage, JPEG terkompresi sekitar 130 KB.
+- `apps/web/public/homepage-signal.jpg`: gambar section pembelajaran Homepage.
+- `apps/web/public/student-hero.jpg`: banner karakter untuk dashboard siswa, guru, dan kepala sekolah.
+- `apps/web/public/about-school-illustration.svg`: ilustrasi ringan untuk section utama About School.
+
+Gambar bitmap publik dikompres sebelum disimpan agar waktu muat tetap ringan. Background Hero menggunakan ukuran responsif agar komposisi gambar tetap terlihat ketika lebar browser berubah.
 
 ### Penjadwalan
 

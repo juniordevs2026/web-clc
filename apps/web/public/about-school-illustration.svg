@@ -1,0 +1,29 @@
+<svg width="640" height="520" viewBox="0 0 640 520" fill="none" xmlns="http://www.w3.org/2000/svg">
+  <rect width="640" height="520" rx="18" fill="#E8F3FF"/>
+  <circle cx="500" cy="104" r="72" fill="#BFE8F0"/>
+  <path d="M0 408C118 350 207 369 302 421C402 476 514 453 640 393V520H0V408Z" fill="#CFE3FB"/>
+  <path d="M88 374C139 298 227 275 318 309C385 333 456 326 539 275" stroke="#1357D8" stroke-width="8" stroke-linecap="round"/>
+  <path d="M90 374C139 298 227 275 318 309C385 333 456 326 539 275" stroke="#7BE7ED" stroke-width="3" stroke-linecap="round"/>
+  <rect x="270" y="157" width="102" height="155" rx="8" fill="#102541"/>
+  <path d="M260 312H382L401 403H241L260 312Z" fill="#1357D8"/>
+  <path d="M283 183H359V227H283V183Z" fill="#7BE7ED"/>
+  <path d="M296 200H346" stroke="#102541" stroke-width="6" stroke-linecap="round"/>
+  <path d="M297 216H337" stroke="#102541" stroke-width="6" stroke-linecap="round"/>
+  <circle cx="173" cy="306" r="34" fill="#F2B49E"/>
+  <path d="M130 402C133 347 145 322 173 322C201 322 213 347 216 402H130Z" fill="#1357D8"/>
+  <path d="M136 294C144 255 202 251 211 294C199 281 153 281 136 294Z" fill="#102541"/>
+  <path d="M162 306H168M184 306H190" stroke="#102541" stroke-width="5" stroke-linecap="round"/>
+  <path d="M151 320C164 330 182 330 195 320" stroke="#102541" stroke-width="4" stroke-linecap="round"/>
+  <circle cx="462" cy="291" r="35" fill="#D9957D"/>
+  <path d="M414 402C417 344 432 315 462 315C492 315 507 344 510 402H414Z" fill="#7BE7ED"/>
+  <path d="M424 278C437 239 491 245 503 280C481 267 450 267 424 278Z" fill="#102541"/>
+  <path d="M448 293H454M470 293H476" stroke="#102541" stroke-width="5" stroke-linecap="round"/>
+  <circle cx="318" cy="325" r="41" fill="#F2B49E"/>
+  <path d="M265 430C268 361 285 331 318 331C351 331 368 361 371 430H265Z" fill="#102541"/>
+  <path d="M276 299C289 250 352 253 362 300C342 282 301 282 276 299Z" fill="#1357D8"/>
+  <path d="M298 323H305M330 323H337" stroke="#102541" stroke-width="5" stroke-linecap="round"/>
+  <path d="M300 341C312 350 328 350 340 341" stroke="#102541" stroke-width="4" stroke-linecap="round"/>
+  <rect x="238" y="409" width="174" height="22" rx="11" fill="#F7C95E"/>
+  <text x="320" y="424" text-anchor="middle" fill="#102541" font-family="Arial, sans-serif" font-size="11" font-weight="700">BELAJAR BERSAMA</text>
+  <path d="M91 119L103 143L130 147L110 166L115 193L91 181L67 193L72 166L52 147L79 143L91 119Z" fill="#F7C95E"/>
+</svg>

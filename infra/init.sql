@@ -20,6 +20,7 @@ CREATE TABLE app_settings (
   bantuan_pendaftaran_deskripsi VARCHAR(500) NOT NULL DEFAULT 'Panduan singkat memilih program CLC',
   bantuan_teknis_judul VARCHAR(180) NOT NULL DEFAULT 'Butuh bantuan teknis?',
   bantuan_teknis_deskripsi VARCHAR(500) NOT NULL DEFAULT 'Hubungi admin CLC untuk dukungan',
+  page_content JSONB NOT NULL DEFAULT '{}'::jsonb,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 

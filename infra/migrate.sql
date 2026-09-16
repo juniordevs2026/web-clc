@@ -24,6 +24,7 @@ ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS bantuan_pendaftaran_judul VARC
 ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS bantuan_pendaftaran_deskripsi VARCHAR(500) NOT NULL DEFAULT 'Panduan singkat memilih program CLC';
 ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS bantuan_teknis_judul VARCHAR(180) NOT NULL DEFAULT 'Butuh bantuan teknis?';
 ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS bantuan_teknis_deskripsi VARCHAR(500) NOT NULL DEFAULT 'Hubungi admin CLC untuk dukungan';
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS page_content JSONB NOT NULL DEFAULT '{}'::jsonb;
 CREATE TABLE IF NOT EXISTS jadwal_mengajar (
 	id SERIAL PRIMARY KEY,
 	mata_pelajaran_id INTEGER NOT NULL REFERENCES mata_pelajaran(id) ON DELETE CASCADE,

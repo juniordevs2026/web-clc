@@ -32,8 +32,20 @@ app.get('/api/health', asyncRoute(async (_req, res) => {
 }));
 
 app.get('/api/public-settings', asyncRoute(async (_req, res) => {
-  const { rows } = await pool.query('SELECT nama_website, logo_sekolah FROM app_settings WHERE id = 1');
+  const { rows } = await pool.query('SELECT nama_website, logo_sekolah, page_content FROM app_settings WHERE id = 1');
   res.json(rows[0] ?? { nama_website: 'Character Learning Center', logo_sekolah: null });
+}));
+
+app.get('/api/pages', requireAdmin, asyncRoute(async (_req, res) => {
+  const { rows } = await pool.query('SELECT page_content FROM app_settings WHERE id = 1');
+  res.json(rows[0]?.page_content ?? {});
+}));
+
+app.put('/api/pages', requireAdmin, asyncRoute(async (req, res) => {
+  const pageSchema = z.object({ title: z.string().min(1).max(180), intro: z.string().min(1).max(600), sectionTitle: z.string().min(1).max(180), sectionText: z.string().min(1).max(1000) });
+  const input = z.object({ home: pageSchema, profil: pageSchema, sekolah: pageSchema, program: pageSchema }).parse(req.body);
+  await pool.query('UPDATE app_settings SET page_content = $1::jsonb, updated_at = NOW() WHERE id = 1', [JSON.stringify(input)]);
+  res.json({ saved: true, pages: input });
 }));
 
 app.get('/api/settings', requireAuth(), asyncRoute(async (_req, res) => {
