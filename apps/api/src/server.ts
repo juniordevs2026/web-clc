@@ -448,5 +448,9 @@ app.use((error: unknown, _req: express.Request, res: express.Response, _next: ex
   res.status(400).json({ message: 'Permintaan tidak dapat diproses.' });
 });
 
-const port = Number(process.env.PORT ?? 4000);
-app.listen(port, () => console.log(`CLC API listening on http://localhost:${port}`));
+export default app;
+
+if (process.env.VERCEL !== '1') {
+  const port = Number(process.env.PORT ?? 4000);
+  app.listen(port, () => console.log(`CLC API listening on http://localhost:${port}`));
+}
