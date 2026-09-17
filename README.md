@@ -2,7 +2,7 @@
 
 Portal Student Lead Conference: katalog program, booking siswa dengan kapasitas tiga orang per mata pelajaran dan maksimal tiga mata pelajaran per siswa. Setelah mendaftar, siswa tidak dapat membatalkan pilihannya; pembatalan hanya dapat dilakukan oleh guru pengampu mata pelajaran tersebut. Admin juga dapat mengatur hari, jam, dan ruang mengajar; jadwal tersebut tersinkron ke dashboard guru dan siswa.
 
-Dashboard siswa, guru, dan kepala sekolah menggunakan banner karakter CLC yang sama. Aset banner disimpan dalam format JPEG terkompresi di `apps/web/public/student-hero.jpg` agar loading tetap ringan. Identitas website (nama dan logo) dikelola dari menu Pengaturan dan ditampilkan kembali pada Homepage serta navigasi Dashboard.
+Dashboard siswa, guru, dan kepala sekolah menggunakan banner SLC yang sama. Aset banner disimpan sebagai satu JPEG terkompresi di `apps/web/public/slc-banner.jpg` agar loading tetap ringan. Identitas website (nama dan logo) dikelola dari menu Pengaturan dan ditampilkan kembali pada Homepage serta navigasi Dashboard.
 
 Homepage menggunakan gambar Hero CLC sebagai background responsif dengan overlay biru agar teks tetap mudah dibaca pada berbagai ukuran layar. Section statistik dan kartu metode menggunakan efek emboss modern. Halaman About School juga memiliki ilustrasi komunitas belajar dalam format SVG yang ringan, sedangkan kartu statistiknya menggunakan gaya visual yang sama.
 
@@ -75,9 +75,8 @@ Setiap halaman menyediakan editor untuk judul, deskripsi pembuka, judul section 
 
 ### Aset visual publik
 
-- `apps/web/public/homepage-hero.jpg`: background Hero Homepage, JPEG terkompresi sekitar 130 KB.
-- `apps/web/public/homepage-signal.jpg`: gambar section pembelajaran Homepage.
-- `apps/web/public/student-hero.jpg`: banner karakter untuk dashboard siswa, guru, dan kepala sekolah.
+- `apps/web/public/slc-banner.jpg`: banner Student Lead Conference untuk dashboard, JPEG terkompresi sekitar 150 KB.
+- `apps/web/public/slc-signal.jpg`: ilustrasi SLC untuk section pembelajaran Homepage, JPEG terkompresi sekitar 70 KB.
 - `apps/web/public/about-school-illustration.svg`: ilustrasi ringan untuk section utama About School.
 
 Gambar bitmap publik dikompres sebelum disimpan agar waktu muat tetap ringan. Background Hero menggunakan ukuran responsif agar komposisi gambar tetap terlihat ketika lebar browser berubah.
