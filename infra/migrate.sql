@@ -5,7 +5,7 @@ CREATE TABLE IF NOT EXISTS kelas (
 );
 CREATE TABLE IF NOT EXISTS app_settings (
 	id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
-	nama_website VARCHAR(140) NOT NULL DEFAULT 'Character Learning Center',
+	nama_website VARCHAR(140) NOT NULL DEFAULT 'Student Lead Conference',
 	logo_sekolah TEXT,
 	alamat_sekolah TEXT,
 	gemini_api_key TEXT,
@@ -14,16 +14,16 @@ CREATE TABLE IF NOT EXISTS app_settings (
 	semester VARCHAR(20) NOT NULL DEFAULT 'Ganjil',
 	semester_aktif BOOLEAN NOT NULL DEFAULT TRUE,
 	bantuan_pendaftaran_judul VARCHAR(180) NOT NULL DEFAULT 'Bagaimana cara mendaftar?',
-	bantuan_pendaftaran_deskripsi VARCHAR(500) NOT NULL DEFAULT 'Panduan singkat memilih program CLC',
+	bantuan_pendaftaran_deskripsi VARCHAR(500) NOT NULL DEFAULT 'Panduan singkat memilih program SLC',
 	bantuan_teknis_judul VARCHAR(180) NOT NULL DEFAULT 'Butuh bantuan teknis?',
-	bantuan_teknis_deskripsi VARCHAR(500) NOT NULL DEFAULT 'Hubungi admin CLC untuk dukungan',
+	bantuan_teknis_deskripsi VARCHAR(500) NOT NULL DEFAULT 'Hubungi admin SLC untuk dukungan',
 	updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 INSERT INTO app_settings (id) VALUES (1) ON CONFLICT (id) DO NOTHING;
 ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS bantuan_pendaftaran_judul VARCHAR(180) NOT NULL DEFAULT 'Bagaimana cara mendaftar?';
-ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS bantuan_pendaftaran_deskripsi VARCHAR(500) NOT NULL DEFAULT 'Panduan singkat memilih program CLC';
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS bantuan_pendaftaran_deskripsi VARCHAR(500) NOT NULL DEFAULT 'Panduan singkat memilih program SLC';
 ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS bantuan_teknis_judul VARCHAR(180) NOT NULL DEFAULT 'Butuh bantuan teknis?';
-ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS bantuan_teknis_deskripsi VARCHAR(500) NOT NULL DEFAULT 'Hubungi admin CLC untuk dukungan';
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS bantuan_teknis_deskripsi VARCHAR(500) NOT NULL DEFAULT 'Hubungi admin SLC untuk dukungan';
 ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS page_content JSONB NOT NULL DEFAULT '{}'::jsonb;
 CREATE TABLE IF NOT EXISTS jadwal_mengajar (
 	id SERIAL PRIMARY KEY,

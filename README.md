@@ -1,6 +1,6 @@
 # CLC Platform
 
-Portal Character Learning Center: katalog program, booking siswa dengan kapasitas tiga orang per mata pelajaran dan maksimal tiga mata pelajaran per siswa. Siswa dapat membatalkan salah satu pendaftaran untuk menggantinya dengan mata pelajaran lain selama kuota tersedia, tanpa mengubah batas Team. Admin juga dapat mengatur hari, jam, dan ruang mengajar; jadwal tersebut tersinkron ke dashboard guru dan siswa.
+Portal Student Lead Conference: katalog program, booking siswa dengan kapasitas tiga orang per mata pelajaran dan maksimal tiga mata pelajaran per siswa. Setelah mendaftar, siswa tidak dapat membatalkan pilihannya; pembatalan hanya dapat dilakukan oleh guru pengampu mata pelajaran tersebut. Admin juga dapat mengatur hari, jam, dan ruang mengajar; jadwal tersebut tersinkron ke dashboard guru dan siswa.
 
 Dashboard siswa, guru, dan kepala sekolah menggunakan banner karakter CLC yang sama. Aset banner disimpan dalam format JPEG terkompresi di `apps/web/public/student-hero.jpg` agar loading tetap ringan. Identitas website (nama dan logo) dikelola dari menu Pengaturan dan ditampilkan kembali pada Homepage serta navigasi Dashboard.
 

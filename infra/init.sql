@@ -8,7 +8,7 @@ CREATE TABLE kelas (
 
 CREATE TABLE app_settings (
   id INTEGER PRIMARY KEY DEFAULT 1 CHECK (id = 1),
-  nama_website VARCHAR(140) NOT NULL DEFAULT 'Character Learning Center',
+  nama_website VARCHAR(140) NOT NULL DEFAULT 'Student Lead Conference',
   logo_sekolah TEXT,
   alamat_sekolah TEXT,
   gemini_api_key TEXT,
@@ -17,9 +17,9 @@ CREATE TABLE app_settings (
   semester VARCHAR(20) NOT NULL DEFAULT 'Ganjil',
   semester_aktif BOOLEAN NOT NULL DEFAULT TRUE,
   bantuan_pendaftaran_judul VARCHAR(180) NOT NULL DEFAULT 'Bagaimana cara mendaftar?',
-  bantuan_pendaftaran_deskripsi VARCHAR(500) NOT NULL DEFAULT 'Panduan singkat memilih program CLC',
+  bantuan_pendaftaran_deskripsi VARCHAR(500) NOT NULL DEFAULT 'Panduan singkat memilih program SLC',
   bantuan_teknis_judul VARCHAR(180) NOT NULL DEFAULT 'Butuh bantuan teknis?',
-  bantuan_teknis_deskripsi VARCHAR(500) NOT NULL DEFAULT 'Hubungi admin CLC untuk dukungan',
+  bantuan_teknis_deskripsi VARCHAR(500) NOT NULL DEFAULT 'Hubungi admin SLC untuk dukungan',
   page_content JSONB NOT NULL DEFAULT '{}'::jsonb,
   updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
@@ -97,7 +97,7 @@ INSERT INTO users (nama, username, email, password, role, kelas) VALUES
   ('Dimas Arya', 'dimas', 'dimas@clc.local', 'demo', 'siswa', 'Kelas VII Karmel'),
   ('Alya Putri', 'alya', 'alya@clc.local', 'demo', 'guru', NULL),
   ('Bima Santoso', 'bima', 'bima@clc.local', 'demo', 'guru', NULL),
-  ('Admin CLC', 'admin', 'admin@clc.local', 'demo', 'admin', NULL),
+  ('Admin SLC', 'admin', 'admin@slc.local', 'demo', 'admin', NULL),
   ('Dr. Ratna Sari', 'ratna', 'ratna@clc.local', 'demo', 'kepala_sekolah', NULL);
 
 INSERT INTO mata_pelajaran (nama_pelajaran, deskripsi, guru_id, kapasitas, kelas) VALUES

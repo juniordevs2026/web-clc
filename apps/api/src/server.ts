@@ -36,7 +36,7 @@ app.get('/api/health', asyncRoute(async (_req, res) => {
 
 app.get('/api/public-settings', asyncRoute(async (_req, res) => {
   const { rows } = await pool.query('SELECT nama_website, logo_sekolah, page_content FROM app_settings WHERE id = 1');
-  res.json(rows[0] ?? { nama_website: 'Character Learning Center', logo_sekolah: null });
+  res.json(rows[0] ?? { nama_website: 'Student Lead Conference', logo_sekolah: null });
 }));
 
 app.get('/api/pages', requireAdmin, asyncRoute(async (_req, res) => {
@@ -431,16 +431,27 @@ app.post('/api/bookings', requireAuth(['siswa']), asyncRoute(async (req, res) =>
   }
 }));
 
-app.delete('/api/bookings/:mataPelajaranId', requireAuth(['siswa']), asyncRoute(async (req, res) => {
+app.delete('/api/bookings/:mataPelajaranId', requireAuth(), asyncRoute(async (_req, res) => {
+  res.status(403).json({ message: 'Siswa tidak dapat membatalkan pendaftaran. Hubungi guru mata pelajaran.' });
+}));
+
+app.delete('/api/teachers/:teacherId/bookings/:mataPelajaranId/:studentId', requireAuth(['guru']), asyncRoute(async (req, res) => {
+  const teacherId = z.coerce.number().int().positive().parse(req.params.teacherId);
   const mataPelajaranId = z.coerce.number().int().positive().parse(req.params.mataPelajaranId);
-  const studentId = (req as AuthRequest).user?.id;
-  if (!studentId) return res.status(401).json({ message: 'Sesi login diperlukan.' });
-  const result = await pool.query(
-    'DELETE FROM booking_pelajaran WHERE siswa_id = $1 AND mata_pelajaran_id = $2 RETURNING id',
-    [studentId, mataPelajaranId],
-  );
-  if (!result.rowCount) return res.status(404).json({ message: 'Pendaftaran mata pelajaran tidak ditemukan.' });
-  res.json({ message: 'Pendaftaran berhasil dibatalkan.' });
+  const studentId = z.coerce.number().int().positive().parse(req.params.studentId);
+  const auth = (req as AuthRequest).user;
+  if (auth?.id !== teacherId) return res.status(403).json({ message: 'Pembatalan hanya dapat dilakukan oleh akun guru yang sedang login.' });
+  const result = await pool.query(`
+    DELETE FROM booking_pelajaran bp
+    USING mata_pelajaran mp
+    WHERE bp.mata_pelajaran_id = mp.id
+      AND bp.mata_pelajaran_id = $1
+      AND bp.siswa_id = $2
+      AND mp.guru_id = $3
+    RETURNING bp.id
+  `, [mataPelajaranId, studentId, teacherId]);
+  if (!result.rowCount) return res.status(404).json({ message: 'Pendaftaran tidak ditemukan atau bukan mata pelajaran yang kamu ampu.' });
+  res.json({ message: 'Pendaftaran siswa berhasil dibatalkan.' });
 }));
 
 app.use((error: unknown, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
@@ -452,5 +463,5 @@ export default app;
 
 if (process.env.VERCEL !== '1') {
   const port = Number(process.env.PORT ?? 4000);
-  app.listen(port, () => console.log(`CLC API listening on http://localhost:${port}`));
+  app.listen(port, () => console.log(`SLC API listening on http://localhost:${port}`));
 }
