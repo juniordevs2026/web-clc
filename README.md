@@ -1,10 +1,10 @@
-# CLC Platform
+# SLC Platform
 
-Portal Student Lead Conference: katalog program, booking siswa dengan kapasitas tiga orang per mata pelajaran dan maksimal tiga mata pelajaran per siswa. Setelah mendaftar, siswa tidak dapat membatalkan pilihannya; pembatalan hanya dapat dilakukan oleh guru pengampu mata pelajaran tersebut. Admin juga dapat mengatur hari, jam, dan ruang mengajar; jadwal tersebut tersinkron ke dashboard guru dan siswa.
+Portal Student Led Conference: katalog program, booking siswa dengan kapasitas tiga orang per mata pelajaran dan maksimal tiga mata pelajaran per siswa. Setelah mendaftar, siswa tidak dapat membatalkan pilihannya; pembatalan hanya dapat dilakukan oleh guru pengampu mata pelajaran tersebut. Admin juga dapat mengatur hari, jam, dan ruang mengajar; jadwal tersebut tersinkron ke dashboard guru dan siswa.
 
 Dashboard siswa, guru, dan kepala sekolah menggunakan banner SLC yang sama. Aset banner disimpan sebagai satu JPEG terkompresi di `apps/web/public/slc-banner.jpg` agar loading tetap ringan. Identitas website (nama dan logo) dikelola dari menu Pengaturan dan ditampilkan kembali pada Homepage serta navigasi Dashboard.
 
-Homepage menggunakan gambar Hero CLC sebagai background responsif dengan overlay biru agar teks tetap mudah dibaca pada berbagai ukuran layar. Section statistik dan kartu metode menggunakan efek emboss modern. Halaman About School juga memiliki ilustrasi komunitas belajar dalam format SVG yang ringan, sedangkan kartu statistiknya menggunakan gaya visual yang sama.
+Homepage menggunakan gambar Hero SLC sebagai background responsif dengan overlay biru agar teks tetap mudah dibaca pada berbagai ukuran layar. Section statistik dan kartu metode menggunakan efek emboss modern. Halaman About School juga memiliki ilustrasi komunitas belajar dalam format SVG yang ringan, sedangkan kartu statistiknya menggunakan gaya visual yang sama.
 
 ## Jalankan dengan Podman
 
@@ -67,7 +67,7 @@ Menu `Pengaturan` pada Admin dapat digunakan untuk mengubah nama website dan log
 Menu `Pages` pada Admin digunakan untuk mengubah konten teks halaman publik:
 
 - `Homepage`
-- `Profil CLC`
+- `Profil SLC`
 - `About School`
 - `Program`
 
@@ -75,7 +75,7 @@ Setiap halaman menyediakan editor untuk judul, deskripsi pembuka, judul section 
 
 ### Aset visual publik
 
-- `apps/web/public/slc-banner.jpg`: banner Student Lead Conference untuk dashboard, JPEG terkompresi sekitar 150 KB.
+- `apps/web/public/slc-banner.jpg`: banner Student Led Conference untuk dashboard, JPEG terkompresi sekitar 150 KB.
 - `apps/web/public/slc-signal.jpg`: ilustrasi SLC untuk section pembelajaran Homepage, JPEG terkompresi sekitar 70 KB.
 - `apps/web/public/about-school-illustration.svg`: ilustrasi ringan untuk section utama About School.
 
