@@ -49,9 +49,8 @@ DO $$ BEGIN
 	ALTER TABLE mata_pelajaran ADD CONSTRAINT mata_pelajaran_kapasitas_maksimal CHECK (kapasitas > 0 AND kapasitas <= 3);
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
-UPDATE users SET kelas = 'Kelas VII Ararat 1' WHERE email IN ('nadia@clc.local', 'raka@clc.local');
-UPDATE users SET kelas = 'Kelas VII Ararat 2' WHERE email = 'salsa@clc.local';
-UPDATE users SET kelas = 'Kelas VII Karmel 1' WHERE email = 'dimas@clc.local';
+UPDATE users SET kelas = 'Kelas VII Ararat' WHERE email IN ('nadia@clc.local', 'raka@clc.local', 'salsa@clc.local');
+UPDATE users SET kelas = 'Kelas VII Karmel' WHERE email = 'dimas@clc.local';
 CREATE TEMP TABLE _mata_pelajaran_seed AS
 SELECT DISTINCT ON (nama_pelajaran) nama_pelajaran, deskripsi, guru_id, kapasitas
 FROM mata_pelajaran
@@ -59,16 +58,17 @@ ORDER BY nama_pelajaran, id;
 DELETE FROM mata_pelajaran;
 DELETE FROM kelas;
 INSERT INTO kelas (nama_kelas) VALUES
-  ('Kelas VII Ararat 1'), ('Kelas VII Ararat 2'),
-  ('Kelas VII Karmel 1'), ('Kelas VII Karmel 2'),
-  ('Kelas VIII Sinai 1'), ('Kelas VIII Sinai 2'),
-  ('Kelas VIII Moria 1'), ('Kelas VIII Moria 2'),
-  ('Kelas IX Sion 1'), ('Kelas IX Sion 2'),
-  ('Kelas IX Hermon 1'), ('Kelas IX Hermon 2');
+  ('Kelas VII Ararat'), ('Kelas VII Karmel'),
+  ('Kelas VIII Sinai'), ('Kelas VIII Moria'),
+  ('Kelas IX Sion'), ('Kelas IX Hermon');
 INSERT INTO mata_pelajaran (nama_pelajaran, deskripsi, guru_id, kapasitas, kelas)
 SELECT mp.nama_pelajaran, mp.deskripsi, mp.guru_id, mp.kapasitas, k.nama_kelas
 FROM _mata_pelajaran_seed mp
 CROSS JOIN kelas k;
+UPDATE mata_pelajaran SET nama_pelajaran = nama_pelajaran || ' 1';
+INSERT INTO mata_pelajaran (nama_pelajaran, deskripsi, guru_id, kapasitas, kelas)
+SELECT regexp_replace(mp.nama_pelajaran, ' 1$', ' 2'), mp.deskripsi, mp.guru_id, mp.kapasitas, mp.kelas
+FROM mata_pelajaran mp;
 DROP TABLE _mata_pelajaran_seed;
 INSERT INTO booking_pelajaran (siswa_id, mata_pelajaran_id)
 SELECT v.siswa_id, mp.id FROM (VALUES (1, 'Agama Kristen'), (2, 'Agama Kristen'), (3, 'Agama Kristen'), (1, 'PKN'), (2, 'PKN')) AS v(siswa_id, nama_pelajaran)
