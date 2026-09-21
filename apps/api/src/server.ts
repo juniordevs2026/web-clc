@@ -143,8 +143,8 @@ app.get('/api/courses', requireAuth(), asyncRoute(async (_req, res) => {
     LEFT JOIN users u ON u.id = mp.guru_id
     LEFT JOIN booking_pelajaran bp ON bp.mata_pelajaran_id = mp.id
     LEFT JOIN users ub ON ub.id = bp.siswa_id
-    WHERE ($1::text IS NULL OR mp.kelas = $1)
     CROSS JOIN app_settings s
+    WHERE ($1::text IS NULL OR mp.kelas = $1)
     GROUP BY mp.id, u.nama, s.booking_dibuka_at, s.booking_ditutup_at ORDER BY mp.id
   `, [studentClass]);
   res.json(rows);
