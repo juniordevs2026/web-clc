@@ -52,7 +52,7 @@ app.put('/api/pages', requireAdmin, asyncRoute(async (req, res) => {
 }));
 
 app.get('/api/settings', requireAuth(), asyncRoute(async (_req, res) => {
-  const { rows } = await pool.query(`SELECT id, nama_website, logo_sekolah, alamat_sekolah, (gemini_api_key IS NOT NULL AND gemini_api_key <> '') AS gemini_terkonfigurasi, tema, tahun_pelajaran, semester, semester_aktif, bantuan_pendaftaran_judul, bantuan_pendaftaran_deskripsi, bantuan_teknis_judul, bantuan_teknis_deskripsi, updated_at FROM app_settings WHERE id = 1`);
+  const { rows } = await pool.query(`SELECT id, nama_website, logo_sekolah, alamat_sekolah, (gemini_api_key IS NOT NULL AND gemini_api_key <> '') AS gemini_terkonfigurasi, tema, tahun_pelajaran, semester, semester_aktif, TO_CHAR(booking_dibuka_at AT TIME ZONE 'Asia/Jayapura', 'YYYY-MM-DD"T"HH24:MI') AS booking_dibuka_at, TO_CHAR(booking_ditutup_at AT TIME ZONE 'Asia/Jayapura', 'YYYY-MM-DD"T"HH24:MI') AS booking_ditutup_at, bantuan_pendaftaran_judul, bantuan_pendaftaran_deskripsi, bantuan_teknis_judul, bantuan_teknis_deskripsi, updated_at FROM app_settings WHERE id = 1`);
   res.json(rows[0]);
 }));
 app.post('/api/login', asyncRoute(async (req, res) => {
@@ -92,9 +92,12 @@ app.put('/api/profile/:id', requireAuth(), asyncRoute(async (req, res) => {
 }));
 
 app.put('/api/settings', requireAdmin, asyncRoute(async (req, res) => {
-  const input = z.object({ namaWebsite: z.string().min(1).max(140), logoSekolah: z.string().max(2_000_000).nullable().optional(), alamatSekolah: z.string().max(500), geminiApiKey: z.string().max(500).optional(), tema: z.enum(['terang', 'gelap', 'otomatis']), tahunPelajaran: z.string().min(4).max(20), semester: z.enum(['Ganjil', 'Genap']), semesterAktif: z.boolean(), bantuanPendaftaranJudul: z.string().min(1).max(180), bantuanPendaftaranDeskripsi: z.string().min(1).max(500), bantuanTeknisJudul: z.string().min(1).max(180), bantuanTeknisDeskripsi: z.string().min(1).max(500) }).parse(req.body);
-  const values = [input.namaWebsite, input.logoSekolah ?? null, input.alamatSekolah, input.tema, input.tahunPelajaran, input.semester, input.semesterAktif, input.bantuanPendaftaranJudul, input.bantuanPendaftaranDeskripsi, input.bantuanTeknisJudul, input.bantuanTeknisDeskripsi];
-  const query = input.geminiApiKey ? `UPDATE app_settings SET nama_website = $1, logo_sekolah = $2, alamat_sekolah = $3, tema = $4, tahun_pelajaran = $5, semester = $6, semester_aktif = $7, bantuan_pendaftaran_judul = $8, bantuan_pendaftaran_deskripsi = $9, bantuan_teknis_judul = $10, bantuan_teknis_deskripsi = $11, gemini_api_key = $12, updated_at = NOW() WHERE id = 1` : `UPDATE app_settings SET nama_website = $1, logo_sekolah = $2, alamat_sekolah = $3, tema = $4, tahun_pelajaran = $5, semester = $6, semester_aktif = $7, bantuan_pendaftaran_judul = $8, bantuan_pendaftaran_deskripsi = $9, bantuan_teknis_judul = $10, bantuan_teknis_deskripsi = $11, updated_at = NOW() WHERE id = 1`;
+  const input = z.object({ namaWebsite: z.string().min(1).max(140), logoSekolah: z.string().max(2_000_000).nullable().optional(), alamatSekolah: z.string().max(500), geminiApiKey: z.string().max(500).optional(), tema: z.enum(['terang', 'gelap', 'otomatis']), tahunPelajaran: z.string().min(4).max(20), semester: z.enum(['Ganjil', 'Genap']), semesterAktif: z.boolean(), bookingDibukaAt: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/).nullable().default(null), bookingDitutupAt: z.string().regex(/^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}$/).nullable().default(null), bantuanPendaftaranJudul: z.string().min(1).max(180), bantuanPendaftaranDeskripsi: z.string().min(1).max(500), bantuanTeknisJudul: z.string().min(1).max(180), bantuanTeknisDeskripsi: z.string().min(1).max(500) }).superRefine((value, context) => {
+    if (value.bookingDibukaAt && value.bookingDitutupAt && value.bookingDitutupAt <= value.bookingDibukaAt) context.addIssue({ code: z.ZodIssueCode.custom, path: ['bookingDitutupAt'], message: 'Waktu tutup harus setelah waktu buka.' });
+  }).parse(req.body);
+  const values = [input.namaWebsite, input.logoSekolah ?? null, input.alamatSekolah, input.tema, input.tahunPelajaran, input.semester, input.semesterAktif, input.bookingDibukaAt, input.bookingDitutupAt, input.bantuanPendaftaranJudul, input.bantuanPendaftaranDeskripsi, input.bantuanTeknisJudul, input.bantuanTeknisDeskripsi];
+  const bookingFields = `booking_dibuka_at = CASE WHEN $8::text IS NULL THEN NULL ELSE $8::timestamp AT TIME ZONE 'Asia/Jayapura' END, booking_ditutup_at = CASE WHEN $9::text IS NULL THEN NULL ELSE $9::timestamp AT TIME ZONE 'Asia/Jayapura' END`;
+  const query = input.geminiApiKey ? `UPDATE app_settings SET nama_website = $1, logo_sekolah = $2, alamat_sekolah = $3, tema = $4, tahun_pelajaran = $5, semester = $6, semester_aktif = $7, ${bookingFields}, bantuan_pendaftaran_judul = $10, bantuan_pendaftaran_deskripsi = $11, bantuan_teknis_judul = $12, bantuan_teknis_deskripsi = $13, gemini_api_key = $14, updated_at = NOW() WHERE id = 1` : `UPDATE app_settings SET nama_website = $1, logo_sekolah = $2, alamat_sekolah = $3, tema = $4, tahun_pelajaran = $5, semester = $6, semester_aktif = $7, ${bookingFields}, bantuan_pendaftaran_judul = $10, bantuan_pendaftaran_deskripsi = $11, bantuan_teknis_judul = $12, bantuan_teknis_deskripsi = $13, updated_at = NOW() WHERE id = 1`;
   await pool.query(query, input.geminiApiKey ? [...values, input.geminiApiKey] : values);
   res.json({ saved: true });
 }));
@@ -133,13 +136,16 @@ app.get('/api/courses', requireAuth(), asyncRoute(async (_req, res) => {
     : requestedClass;
   const { rows } = await pool.query(`
     SELECT mp.id, mp.nama_pelajaran, mp.deskripsi, mp.kapasitas, mp.kelas, mp.guru_id, u.nama AS guru,
-      COUNT(bp.id)::int AS terdaftar
+      COUNT(bp.id)::int AS terdaftar,
+      TO_CHAR(s.booking_dibuka_at AT TIME ZONE 'Asia/Jayapura', 'YYYY-MM-DD"T"HH24:MI') AS booking_dibuka_at,
+      TO_CHAR(s.booking_ditutup_at AT TIME ZONE 'Asia/Jayapura', 'YYYY-MM-DD"T"HH24:MI') AS booking_ditutup_at
     FROM mata_pelajaran mp
     LEFT JOIN users u ON u.id = mp.guru_id
     LEFT JOIN booking_pelajaran bp ON bp.mata_pelajaran_id = mp.id
     LEFT JOIN users ub ON ub.id = bp.siswa_id
     WHERE ($1::text IS NULL OR mp.kelas = $1)
-    GROUP BY mp.id, u.nama ORDER BY mp.id
+    CROSS JOIN app_settings s
+    GROUP BY mp.id, u.nama, s.booking_dibuka_at, s.booking_ditutup_at ORDER BY mp.id
   `, [studentClass]);
   res.json(rows);
 }));
@@ -439,6 +445,12 @@ app.post('/api/bookings', requireAuth(['siswa']), asyncRoute(async (req, res) =>
   const client = await pool.connect();
   try {
     await client.query('BEGIN');
+    const bookingWindow = await client.query(`SELECT booking_dibuka_at, booking_ditutup_at, semester_aktif FROM app_settings WHERE id = 1 FOR SHARE`);
+    const settings = bookingWindow.rows[0];
+    if (!settings?.semester_aktif || (settings.booking_dibuka_at && new Date() < new Date(settings.booking_dibuka_at)) || (settings.booking_ditutup_at && new Date() >= new Date(settings.booking_ditutup_at))) {
+      await client.query('ROLLBACK');
+      return res.status(403).json({ message: !settings?.semester_aktif ? 'Pendaftaran sedang ditutup karena semester tidak aktif.' : settings.booking_dibuka_at && new Date() < new Date(settings.booking_dibuka_at) ? 'Pendaftaran belum dibuka.' : 'Pendaftaran sudah ditutup.' });
+    }
     const course = await client.query('SELECT kapasitas, kelas FROM mata_pelajaran WHERE id = $1 FOR UPDATE', [input.mataPelajaranId]);
     if (!course.rowCount) {
       await client.query('ROLLBACK');

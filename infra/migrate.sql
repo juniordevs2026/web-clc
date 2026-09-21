@@ -25,6 +25,8 @@ ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS bantuan_pendaftaran_deskripsi 
 ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS bantuan_teknis_judul VARCHAR(180) NOT NULL DEFAULT 'Butuh bantuan teknis?';
 ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS bantuan_teknis_deskripsi VARCHAR(500) NOT NULL DEFAULT 'Hubungi admin SLC untuk dukungan';
 ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS page_content JSONB NOT NULL DEFAULT '{}'::jsonb;
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS booking_dibuka_at TIMESTAMPTZ;
+ALTER TABLE app_settings ADD COLUMN IF NOT EXISTS booking_ditutup_at TIMESTAMPTZ;
 CREATE TABLE IF NOT EXISTS jadwal_mengajar (
 	id SERIAL PRIMARY KEY,
 	mata_pelajaran_id INTEGER NOT NULL REFERENCES mata_pelajaran(id) ON DELETE CASCADE,

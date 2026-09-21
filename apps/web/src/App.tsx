@@ -12,7 +12,7 @@ type Pages = Record<'home' | 'profil' | 'sekolah' | 'program', PageContent>;
 type Screen = 'home' | 'login' | 'app';
 type LandingPage = 'home' | 'profil' | 'sekolah' | 'program';
 type NavKey = 'ringkasan' | 'program' | 'progres' | 'komunitas' | 'jadwal' | 'kelas' | 'guru' | 'siswa' | 'pengguna' | 'pelajaran' | 'laporan' | 'pendaftaran' | 'pages';
-type Course = { id: number; nama_pelajaran: string; deskripsi: string; kapasitas: number; kelas: string; guru_id: number; guru: string; terdaftar: number };
+type Course = { id: number; nama_pelajaran: string; deskripsi: string; kapasitas: number; kelas: string; guru_id: number; guru: string; terdaftar: number; booking_dibuka_at: string | null; booking_ditutup_at: string | null };
 type Booking = { mata_pelajaran_id: number };
 type UserRecord = { id: number; nama: string; username: string; email: string; role: Role; kelas: string | null; foto_profil: string | null };
 type ClassRecord = { id: number; nama_kelas: string; jumlah_siswa: number; jumlah_program: number };
@@ -375,7 +375,32 @@ function AdminCoursesPanel({ courses }: { courses: Course[] }) {
   return <><section className="page-intro"><p className="eyebrow">ADMIN / DATA MATA PELAJARAN</p><h1>Bangun program <em>berikutnya.</em></h1><p>Buat mata pelajaran, tentukan kelas, lalu tugaskan guru pengampu.</p></section><form className="course-admin-form" onSubmit={create}><input required placeholder="Nama mata pelajaran" value={form.namaPelajaran} onChange={(event) => setForm({ ...form, namaPelajaran: event.target.value })} /><input required placeholder="Deskripsi singkat" value={form.deskripsi} onChange={(event) => setForm({ ...form, deskripsi: event.target.value })} /><select value={form.guruId} onChange={(event) => setForm({ ...form, guruId: Number(event.target.value) })}>{teachers.map((teacher) => <option value={teacher.id} key={teacher.id}>{teacher.nama}</option>)}</select><input required placeholder="Kelas" value={form.kelas} onChange={(event) => setForm({ ...form, kelas: event.target.value })} /><button className="dark-button" type="submit"><BookOpen size={16} /> Buat program</button></form><div className="admin-form import-form"><h3>Import mata pelajaran dari XLS</h3><p>Kolom wajib: <b>nama_pelajaran</b>, <b>deskripsi</b>, <b>guru</b>, <b>kapasitas</b>, dan <b>kelas</b>.</p><div className="import-actions"><button type="button" className="dark-button" onClick={downloadTemplate}><XLSXIcon /> Unduh template</button><label className="file-button"><XLSXIcon /> Import mata pelajaran<input type="file" accept=".xls,.xlsx" onChange={importFile} /></label></div><small>Kolom guru dapat diisi nama, username, atau email guru. Kelas harus sesuai data kelas yang tersedia.</small></div><div className="admin-form import-form"><h3>Reset booking siswa</h3><p>Hapus seluruh booking siswa agar proses pendaftaran dapat dimulai kembali setelah perubahan mata pelajaran.</p><button type="button" className="reject-button" onClick={cancelAllBookings}>Batalkan seluruh booking</button></div>{notice && <div className="notice"><Check size={16} /> {notice}</div>}<div className="program-report">{items.map((course) => { const SubjectIcon = getSubjectIcon(course.nama_pelajaran); return <div className="program-report-row" key={course.id}><span className="report-course-number subject-report-icon" aria-hidden="true"><SubjectIcon size={18} strokeWidth={1.8} /></span><strong>{course.nama_pelajaran}</strong><select className="assignment-select" value={course.guru_id} onChange={(event) => assignTeacher(course, Number(event.target.value))}>{teachers.map((teacher) => <option value={teacher.id} key={teacher.id}>{teacher.nama}</option>)}</select><b>{course.kelas}</b><button className="delete-button" onClick={() => remove(course.id)} aria-label={`Hapus ${course.nama_pelajaran}`}><X size={15} /></button></div>; })}</div></>;
 }
 
-function CourseCard({ course, index, booked, onBook }: { course: Course; index: number; booked: number[]; onBook: (course: Course) => void }) { const isBooked = booked.includes(course.id); const full = course.terdaftar >= course.kapasitas; const bookingLimitReached = !isBooked && booked.length >= 3; const SubjectIcon = getSubjectIcon(course.nama_pelajaran); return <article className="course-card"><div className={`course-cover cover-${index % 4}`}><div className="course-cover-meta"><span className="tag">{full ? 'PENUH' : bookingLimitReached ? 'BATAS TERCAPAI' : 'TERSEDIA'}</span><span className="capacity">{course.terdaftar}/{course.kapasitas} kursi</span></div><div className="cover-line" /></div><div className="course-body"><div className="course-heading"><SubjectIcon size={22} strokeWidth={1.8} aria-hidden="true" /><h3>{course.nama_pelajaran}</h3></div><p>{course.deskripsi}</p><div className="course-footer"><span className="mentor"><span className="tiny-avatar">{course.guru?.split(' ').map((part) => part[0]).join('')}</span>{course.guru}</span>{isBooked ? <span className="book-button booked">Terdaftar</span> : <button className="book-button" disabled={full || bookingLimitReached} onClick={() => onBook(course)}>{full ? 'Penuh' : bookingLimitReached ? 'Maks. 3 mapel' : 'Daftar'}</button>}</div></div></article>; }
+function CourseCard({ course, index, booked, onBook }: { course: Course; index: number; booked: number[]; onBook: (course: Course) => void }) {
+  const [, setClock] = useState(Date.now());
+  useEffect(() => {
+    const timer = window.setInterval(() => setClock(Date.now()), 30_000);
+    return () => window.clearInterval(timer);
+  }, []);
+  const isBooked = booked.includes(course.id);
+  const full = course.terdaftar >= course.kapasitas;
+  const bookingLimitReached = !isBooked && booked.length >= 3;
+  const now = Date.now();
+  const beforeOpening = Boolean(course.booking_dibuka_at && now < parseBookingTime(course.booking_dibuka_at));
+  const afterClosing = Boolean(course.booking_ditutup_at && now >= parseBookingTime(course.booking_ditutup_at));
+  const bookingClosed = beforeOpening || afterClosing;
+  const status = beforeOpening ? `Dibuka ${formatBookingTime(course.booking_dibuka_at)}` : afterClosing ? 'Booking ditutup' : full ? 'PENUH' : bookingLimitReached ? 'BATAS TERCAPAI' : 'TERSEDIA';
+  const SubjectIcon = getSubjectIcon(course.nama_pelajaran);
+  return <article className="course-card"><div className={`course-cover cover-${index % 4}`}><div className="course-cover-meta"><span className="tag">{status}</span><span className="capacity">{course.terdaftar}/{course.kapasitas} kursi</span></div><div className="cover-line" /></div><div className="course-body"><div className="course-heading"><SubjectIcon size={22} strokeWidth={1.8} aria-hidden="true" /><h3>{course.nama_pelajaran}</h3></div><p>{course.deskripsi}</p><div className="course-footer"><span className="mentor"><span className="tiny-avatar">{course.guru?.split(' ').map((part) => part[0]).join('')}</span>{course.guru}</span>{isBooked ? <span className="book-button booked">Terdaftar</span> : <button className="book-button" disabled={full || bookingLimitReached || bookingClosed} onClick={() => onBook(course)}>{bookingClosed ? beforeOpening ? `Buka ${formatBookingTime(course.booking_dibuka_at)}` : 'Ditutup' : full ? 'Penuh' : bookingLimitReached ? 'Maks. 3 mapel' : 'Daftar'}</button>}</div></div></article>;
+}
+
+function formatBookingTime(value: string | null) {
+  if (!value) return '';
+  return new Intl.DateTimeFormat('id-ID', { day: 'numeric', month: 'short', year: 'numeric', hour: '2-digit', minute: '2-digit', hour12: false, timeZone: 'Asia/Jayapura' }).format(new Date(parseBookingTime(value)));
+}
+
+function parseBookingTime(value: string) {
+  return new Date(`${value}:00+09:00`).getTime();
+}
 
 function UtilityPanel({ type, onClose }: { type: 'settings' | 'help'; onClose: () => void }) {
   const [saved, setSaved] = useState(false);

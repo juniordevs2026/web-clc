@@ -16,6 +16,8 @@ CREATE TABLE app_settings (
   tahun_pelajaran VARCHAR(20) NOT NULL DEFAULT '2026/2027',
   semester VARCHAR(20) NOT NULL DEFAULT 'Ganjil',
   semester_aktif BOOLEAN NOT NULL DEFAULT TRUE,
+  booking_dibuka_at TIMESTAMPTZ,
+  booking_ditutup_at TIMESTAMPTZ,
   bantuan_pendaftaran_judul VARCHAR(180) NOT NULL DEFAULT 'Bagaimana cara mendaftar?',
   bantuan_pendaftaran_deskripsi VARCHAR(500) NOT NULL DEFAULT 'Panduan singkat memilih program SLC',
   bantuan_teknis_judul VARCHAR(180) NOT NULL DEFAULT 'Butuh bantuan teknis?',
