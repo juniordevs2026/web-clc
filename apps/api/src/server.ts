@@ -198,6 +198,55 @@ app.post('/api/courses', requireAdmin, asyncRoute(async (req, res) => {
   res.status(201).json(rows[0]);
 }));
 
+app.post('/api/courses/import', requireAdmin, asyncRoute(async (req, res) => {
+  const input = z.object({
+    mataPelajaran: z.array(z.object({
+      namaPelajaran: z.string().trim().min(2).max(140),
+      deskripsi: z.string().trim().min(5),
+      guru: z.string().trim().min(1).max(180),
+      kapasitas: z.coerce.number().int().positive().max(3).default(3),
+      kelas: z.string().trim().min(1).max(40),
+    })).min(1),
+  }).parse(req.body);
+
+  const resolved = [];
+  for (let index = 0; index < input.mataPelajaran.length; index += 1) {
+    const item = input.mataPelajaran[index];
+    const classExists = await pool.query('SELECT 1 FROM kelas WHERE nama_kelas = $1', [item.kelas]);
+    if (!classExists.rowCount) return res.status(400).json({ message: `Baris ${index + 2}: kelas "${item.kelas}" tidak ditemukan.` });
+    const teacher = await pool.query(
+      `SELECT id, nama FROM users
+       WHERE role = 'guru' AND (username = $1 OR email = $1 OR nama = $1)
+       LIMIT 1`,
+      [item.guru],
+    );
+    if (!teacher.rowCount) return res.status(400).json({ message: `Baris ${index + 2}: guru "${item.guru}" tidak ditemukan. Gunakan nama, username, atau email guru.` });
+    resolved.push({ ...item, guruId: teacher.rows[0].id, guruNama: teacher.rows[0].nama });
+  }
+
+  const client = await pool.connect();
+  try {
+    await client.query('BEGIN');
+    const imported = [];
+    for (const item of resolved) {
+      const result = await client.query(
+        `INSERT INTO mata_pelajaran (nama_pelajaran, deskripsi, guru_id, kapasitas, kelas)
+         VALUES ($1, $2, $3, $4, $5)
+         RETURNING id, nama_pelajaran, deskripsi, guru_id, kapasitas, kelas`,
+        [item.namaPelajaran, item.deskripsi, item.guruId, item.kapasitas, item.kelas],
+      );
+      imported.push({ ...result.rows[0], guru: item.guruNama, terdaftar: 0 });
+    }
+    await client.query('COMMIT');
+    res.status(201).json({ imported: imported.length, mataPelajaran: imported });
+  } catch (error) {
+    await client.query('ROLLBACK');
+    throw error;
+  } finally {
+    client.release();
+  }
+}));
+
 app.put('/api/courses/:id', requireAdmin, asyncRoute(async (req, res) => {
   const id = z.coerce.number().int().positive().parse(req.params.id);
   const input = z.object({ namaPelajaran: z.string().min(2), deskripsi: z.string().min(5), guruId: z.number().int().positive(), kapasitas: z.number().int().positive().max(3), kelas: z.string().min(1).max(40) }).parse(req.body);

@@ -39,7 +39,7 @@ Semua mata pelajaran tersedia untuk setiap kelas. Database menyimpan satu progra
 
 ## Administrator
 
-Masuk sebagai Administrator untuk membuka menu data kelas, guru, siswa, mata pelajaran, penjadwalan, dan laporan sistem. Administrator dapat membuat/menghapus akun non-admin, membuat program untuk guru dan kelas tertentu, serta mengimpor siswa dari file `.xls` atau `.xlsx`.
+Masuk sebagai Administrator untuk membuka menu data kelas, guru, siswa, mata pelajaran, penjadwalan, dan laporan sistem. Administrator dapat membuat/menghapus akun non-admin, membuat program untuk guru dan kelas tertentu, serta mengimpor siswa dan mata pelajaran dari file `.xls` atau `.xlsx`.
 
 ### Import siswa dan template
 
@@ -53,6 +53,18 @@ Format kolom import siswa:
 
 Kolom `nama`, `email`, dan `kelas` wajib. Jika email sudah ada, data siswa akan diperbarui.
 Kolom `username` tersedia sebagai informasi pada template; sistem membuat username dari bagian sebelum `@` pada email saat import. Jika `password` kosong, sistem menggunakan `demo`. Nilai `kelas` harus sesuai dengan kelas yang tersedia pada master data kelas.
+
+### Import mata pelajaran dan template
+
+Pada menu `Data mata pelajaran`, gunakan tombol **Unduh template** untuk mengunduh `template-import-mata-pelajaran.xlsx`. Isi satu mata pelajaran pada setiap baris, lalu pilih **Import mata pelajaran**.
+
+Format kolom import mata pelajaran:
+
+| nama_pelajaran | deskripsi | guru | kapasitas | kelas |
+| --- | --- | --- | --- | --- |
+| Matematika | Belajar dengan tekun dan jujur | alya | 3 | Kelas VII Ararat |
+
+Semua kolom wajib. Kolom `guru` dapat diisi dengan nama, username, atau email guru. Nilai `kapasitas` harus berupa angka 1 sampai 3 dan `kelas` harus sesuai dengan master data kelas. Import disimpan sekaligus; jika ada baris tidak valid, tidak ada data pada file yang disimpan.
 
 ### Ringkasan dashboard
 

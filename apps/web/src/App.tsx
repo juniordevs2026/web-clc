@@ -277,13 +277,50 @@ function XLSXIcon() { return <span className="file-icon">XLS</span>; }
 function AdminCoursesPanel({ courses }: { courses: Course[] }) {
   const [items, setItems] = useState(courses);
   const [teachers, setTeachers] = useState<UserRecord[]>([]);
+  const [classes, setClasses] = useState<ClassRecord[]>([]);
   const [form, setForm] = useState({ namaPelajaran: '', deskripsi: '', guruId: 5, kapasitas: 3, kelas: 'X-A' });
   const [notice, setNotice] = useState('');
-  useEffect(() => { setItems(courses); get<UserRecord[]>('/users?role=guru').then(setTeachers).catch(() => setNotice('Data guru belum dapat dimuat.')); }, [courses]);
+  useEffect(() => { setItems(courses); get<UserRecord[]>('/users?role=guru').then(setTeachers).catch(() => setNotice('Data guru belum dapat dimuat.')); get<ClassRecord[]>('/classes').then(setClasses).catch(() => setNotice('Data kelas belum dapat dimuat.')); }, [courses]);
   const create = async (event: React.FormEvent) => { event.preventDefault(); const response = await fetch(`${API}/courses`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(form) }); const data = await response.json(); if (!response.ok) return setNotice(data.message ?? 'Program gagal dibuat.'); setItems([...items, { ...data, guru: form.guruId === 5 ? 'Alya Putri' : 'Bima Santoso', terdaftar: 0 }]); setForm({ namaPelajaran: '', deskripsi: '', guruId: 5, kapasitas: 3, kelas: 'X-A' }); setNotice('Mata pelajaran berhasil dibuat.'); };
+  const importFile = async (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (!file) return;
+    try {
+      const workbook = XLSX.read(await file.arrayBuffer(), { type: 'array' });
+      const sheet = workbook.Sheets[workbook.SheetNames[0]];
+      const rows = XLSX.utils.sheet_to_json<Record<string, string | number>>(sheet);
+      const mataPelajaran = rows.map((row) => ({
+        namaPelajaran: String(row.nama_pelajaran ?? row.nama ?? row['Nama Mata Pelajaran'] ?? '').trim(),
+        deskripsi: String(row.deskripsi ?? row.Deskripsi ?? '').trim(),
+        guru: String(row.guru ?? row.Guru ?? row['Guru Pengampu'] ?? '').trim(),
+        kapasitas: Number(row.kapasitas ?? row.Kapasitas ?? 3),
+        kelas: String(row.kelas ?? row.Kelas ?? '').trim(),
+      }));
+      if (!mataPelajaran.length || mataPelajaran.some((item) => !item.namaPelajaran || !item.deskripsi || !item.guru || !item.kelas || !Number.isInteger(item.kapasitas) || item.kapasitas < 1 || item.kapasitas > 3)) {
+        setNotice('File tidak valid. Isi nama_pelajaran, deskripsi, guru, kapasitas (1-3), dan kelas pada setiap baris.');
+        return;
+      }
+      const response = await fetch(`${API}/courses/import`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mataPelajaran }) });
+      const data = await response.json();
+      if (!response.ok) { setNotice(data.message ?? 'Import mata pelajaran gagal.'); return; }
+      setItems((current) => [...current, ...data.mataPelajaran]);
+      setNotice(`${data.imported} mata pelajaran berhasil diimpor.`);
+    } catch {
+      setNotice('File tidak dapat dibaca. Gunakan format XLS atau XLSX.');
+    } finally {
+      event.target.value = '';
+    }
+  };
+  const downloadTemplate = () => {
+    const worksheet = XLSX.utils.json_to_sheet([{ nama_pelajaran: '', deskripsi: '', guru: teachers[0]?.username ?? '', kapasitas: 3, kelas: classes[0]?.nama_kelas ?? '' }]);
+    worksheet['!cols'] = [{ wch: 28 }, { wch: 58 }, { wch: 24 }, { wch: 12 }, { wch: 26 }];
+    const workbook = XLSX.utils.book_new();
+    XLSX.utils.book_append_sheet(workbook, worksheet, 'Data Mata Pelajaran');
+    XLSX.writeFile(workbook, 'template-import-mata-pelajaran.xlsx');
+  };
   const assignTeacher = async (course: Course, guruId: number) => { const response = await fetch(`${API}/courses/${course.id}`, { method: 'PUT', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ namaPelajaran: course.nama_pelajaran, deskripsi: course.deskripsi, guruId, kapasitas: course.kapasitas, kelas: course.kelas }) }); const data = await response.json(); if (!response.ok) return setNotice(data.message ?? 'Penugasan guru gagal disimpan.'); const teacher = teachers.find((item) => item.id === guruId); setItems(items.map((item) => item.id === course.id ? { ...item, ...data, guru: teacher?.nama ?? item.guru } : item)); setNotice(`Guru ${teacher?.nama ?? ''} ditugaskan ke ${course.nama_pelajaran}.`); };
   const remove = async (id: number) => { const response = await fetch(`${API}/courses/${id}`, { method: 'DELETE' }); if (response.ok) { setItems(items.filter((item) => item.id !== id)); setNotice('Mata pelajaran berhasil dihapus.'); } };
-  return <><section className="page-intro"><p className="eyebrow">ADMIN / DATA MATA PELAJARAN</p><h1>Bangun program <em>berikutnya.</em></h1><p>Buat mata pelajaran, tentukan kelas, lalu tugaskan guru pengampu.</p></section><form className="course-admin-form" onSubmit={create}><input required placeholder="Nama mata pelajaran" value={form.namaPelajaran} onChange={(event) => setForm({ ...form, namaPelajaran: event.target.value })} /><input required placeholder="Deskripsi singkat" value={form.deskripsi} onChange={(event) => setForm({ ...form, deskripsi: event.target.value })} /><select value={form.guruId} onChange={(event) => setForm({ ...form, guruId: Number(event.target.value) })}>{teachers.map((teacher) => <option value={teacher.id} key={teacher.id}>{teacher.nama}</option>)}</select><input required placeholder="Kelas" value={form.kelas} onChange={(event) => setForm({ ...form, kelas: event.target.value })} /><button className="dark-button" type="submit"><BookOpen size={16} /> Buat program</button></form>{notice && <div className="notice"><Check size={16} /> {notice}</div>}<div className="program-report">{items.map((course) => { const SubjectIcon = getSubjectIcon(course.nama_pelajaran); return <div className="program-report-row" key={course.id}><span className="report-course-number subject-report-icon" aria-hidden="true"><SubjectIcon size={18} strokeWidth={1.8} /></span><strong>{course.nama_pelajaran}</strong><select className="assignment-select" value={course.guru_id} onChange={(event) => assignTeacher(course, Number(event.target.value))}>{teachers.map((teacher) => <option value={teacher.id} key={teacher.id}>{teacher.nama}</option>)}</select><b>{course.kelas}</b><button className="delete-button" onClick={() => remove(course.id)} aria-label={`Hapus ${course.nama_pelajaran}`}><X size={15} /></button></div>; })}</div></>;
+  return <><section className="page-intro"><p className="eyebrow">ADMIN / DATA MATA PELAJARAN</p><h1>Bangun program <em>berikutnya.</em></h1><p>Buat mata pelajaran, tentukan kelas, lalu tugaskan guru pengampu.</p></section><form className="course-admin-form" onSubmit={create}><input required placeholder="Nama mata pelajaran" value={form.namaPelajaran} onChange={(event) => setForm({ ...form, namaPelajaran: event.target.value })} /><input required placeholder="Deskripsi singkat" value={form.deskripsi} onChange={(event) => setForm({ ...form, deskripsi: event.target.value })} /><select value={form.guruId} onChange={(event) => setForm({ ...form, guruId: Number(event.target.value) })}>{teachers.map((teacher) => <option value={teacher.id} key={teacher.id}>{teacher.nama}</option>)}</select><input required placeholder="Kelas" value={form.kelas} onChange={(event) => setForm({ ...form, kelas: event.target.value })} /><button className="dark-button" type="submit"><BookOpen size={16} /> Buat program</button></form><div className="admin-form import-form"><h3>Import mata pelajaran dari XLS</h3><p>Kolom wajib: <b>nama_pelajaran</b>, <b>deskripsi</b>, <b>guru</b>, <b>kapasitas</b>, dan <b>kelas</b>.</p><div className="import-actions"><button type="button" className="dark-button" onClick={downloadTemplate}><XLSXIcon /> Unduh template</button><label className="file-button"><XLSXIcon /> Import mata pelajaran<input type="file" accept=".xls,.xlsx" onChange={importFile} /></label></div><small>Kolom guru dapat diisi nama, username, atau email guru. Kelas harus sesuai data kelas yang tersedia.</small></div>{notice && <div className="notice"><Check size={16} /> {notice}</div>}<div className="program-report">{items.map((course) => { const SubjectIcon = getSubjectIcon(course.nama_pelajaran); return <div className="program-report-row" key={course.id}><span className="report-course-number subject-report-icon" aria-hidden="true"><SubjectIcon size={18} strokeWidth={1.8} /></span><strong>{course.nama_pelajaran}</strong><select className="assignment-select" value={course.guru_id} onChange={(event) => assignTeacher(course, Number(event.target.value))}>{teachers.map((teacher) => <option value={teacher.id} key={teacher.id}>{teacher.nama}</option>)}</select><b>{course.kelas}</b><button className="delete-button" onClick={() => remove(course.id)} aria-label={`Hapus ${course.nama_pelajaran}`}><X size={15} /></button></div>; })}</div></>;
 }
 
 function CourseCard({ course, index, booked, onBook }: { course: Course; index: number; booked: number[]; onBook: (course: Course) => void }) { const isBooked = booked.includes(course.id); const full = course.terdaftar >= course.kapasitas; const bookingLimitReached = !isBooked && booked.length >= 3; const SubjectIcon = getSubjectIcon(course.nama_pelajaran); return <article className="course-card"><div className={`course-cover cover-${index % 4}`}><div className="course-cover-meta"><span className="tag">{full ? 'PENUH' : bookingLimitReached ? 'BATAS TERCAPAI' : 'TERSEDIA'}</span><span className="capacity">{course.terdaftar}/{course.kapasitas} kursi</span></div><div className="cover-line" /></div><div className="course-body"><div className="course-heading"><SubjectIcon size={22} strokeWidth={1.8} aria-hidden="true" /><h3>{course.nama_pelajaran}</h3></div><p>{course.deskripsi}</p><div className="course-footer"><span className="mentor"><span className="tiny-avatar">{course.guru?.split(' ').map((part) => part[0]).join('')}</span>{course.guru}</span>{isBooked ? <span className="book-button booked">Terdaftar</span> : <button className="book-button" disabled={full || bookingLimitReached} onClick={() => onBook(course)}>{full ? 'Penuh' : bookingLimitReached ? 'Maks. 3 mapel' : 'Daftar'}</button>}</div></div></article>; }
