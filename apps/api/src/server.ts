@@ -249,7 +249,7 @@ app.post('/api/courses/import', requireAdmin, asyncRoute(async (req, res) => {
 
 app.put('/api/courses/:id', requireAdmin, asyncRoute(async (req, res) => {
   const id = z.coerce.number().int().positive().parse(req.params.id);
-  const input = z.object({ namaPelajaran: z.string().min(2), deskripsi: z.string().min(5), guruId: z.number().int().positive(), kapasitas: z.number().int().positive().max(3), kelas: z.string().min(1).max(40) }).parse(req.body);
+  const input = z.object({ namaPelajaran: z.string().trim().min(2).max(140), deskripsi: z.string().trim().min(5), guruId: z.coerce.number().int().positive(), kapasitas: z.coerce.number().int().positive().max(3), kelas: z.string().trim().min(1).max(40) }).parse(req.body);
   const classExists = await pool.query('SELECT 1 FROM kelas WHERE nama_kelas = $1', [input.kelas]);
   if (!classExists.rowCount) return res.status(400).json({ message: 'Kelas mata pelajaran harus dipilih dari data kelas yang tersedia.' });
   const result = await pool.query('UPDATE mata_pelajaran SET nama_pelajaran = $1, deskripsi = $2, guru_id = $3, kapasitas = $4, kelas = $5 WHERE id = $6 RETURNING id, nama_pelajaran, deskripsi, guru_id, kapasitas, kelas', [input.namaPelajaran, input.deskripsi, input.guruId, input.kapasitas, input.kelas, id]);
