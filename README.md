@@ -66,6 +66,10 @@ Format kolom import mata pelajaran:
 
 Semua kolom wajib. Kolom `guru` dapat diisi dengan nama, username, atau email guru. Nilai `kapasitas` harus berupa angka 1 sampai 3 dan `kelas` harus sesuai dengan master data kelas. Import disimpan sekaligus; jika ada baris tidak valid, tidak ada data pada file yang disimpan.
 
+### Membatalkan seluruh booking siswa
+
+Jika daftar mata pelajaran berubah, administrator dapat membuka menu `Data mata pelajaran`, lalu menekan **Batalkan seluruh booking** pada bagian `Reset booking siswa`. Sistem meminta konfirmasi sebelum menghapus seluruh pendaftaran siswa. Setelah dibatalkan, siswa dapat melakukan booking ulang pada mata pelajaran yang sudah diperbarui.
+
 ### Ringkasan dashboard
 
 Ringkasan Admin menampilkan metrik total akun, mata pelajaran, pendaftaran, dan kelas. Daftar **Mapel dan penugasan guru** dibatasi enam item per halaman menggunakan pagination agar tetap rapi. Ringkasan Guru memprioritaskan Proposal Team, kemudian Daftar Siswa dan Kelas yang Diampu.

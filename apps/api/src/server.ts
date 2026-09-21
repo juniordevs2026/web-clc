@@ -484,6 +484,11 @@ app.delete('/api/bookings/:mataPelajaranId', requireAuth(), asyncRoute(async (_r
   res.status(403).json({ message: 'Siswa tidak dapat membatalkan pendaftaran. Hubungi guru mata pelajaran.' });
 }));
 
+app.delete('/api/bookings', requireAdmin, asyncRoute(async (_req, res) => {
+  const result = await pool.query('DELETE FROM booking_pelajaran RETURNING id');
+  res.json({ cancelled: result.rowCount ?? 0, message: 'Seluruh pendaftaran siswa berhasil dibatalkan.' });
+}));
+
 app.delete('/api/teachers/:teacherId/bookings/:mataPelajaranId/:studentId', requireAuth(['guru']), asyncRoute(async (req, res) => {
   const teacherId = z.coerce.number().int().positive().parse(req.params.teacherId);
   const mataPelajaranId = z.coerce.number().int().positive().parse(req.params.mataPelajaranId);
