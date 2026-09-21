@@ -88,13 +88,19 @@ CREATE TABLE jadwal_mengajar (
 
 CREATE INDEX jadwal_mengajar_course_idx ON jadwal_mengajar(mata_pelajaran_id);
 
-INSERT INTO kelas (nama_kelas) VALUES ('Kelas VII Ararat'), ('Kelas VII Karmel'), ('Kelas VIII Sinai'), ('Kelas VIII Moria'), ('Kelas IX Sion'), ('Kelas IX Hermon');
+INSERT INTO kelas (nama_kelas) VALUES
+  ('Kelas VII Ararat 1'), ('Kelas VII Ararat 2'),
+  ('Kelas VII Karmel 1'), ('Kelas VII Karmel 2'),
+  ('Kelas VIII Sinai 1'), ('Kelas VIII Sinai 2'),
+  ('Kelas VIII Moria 1'), ('Kelas VIII Moria 2'),
+  ('Kelas IX Sion 1'), ('Kelas IX Sion 2'),
+  ('Kelas IX Hermon 1'), ('Kelas IX Hermon 2');
 
 INSERT INTO users (nama, username, email, password, role, kelas) VALUES
-  ('Nadia Prameswari', 'nadia', 'nadia@clc.local', 'demo', 'siswa', 'Kelas VII Ararat'),
-  ('Raka Mahendra', 'raka', 'raka@clc.local', 'demo', 'siswa', 'Kelas VII Ararat'),
-  ('Salsa Kirana', 'salsa', 'salsa@clc.local', 'demo', 'siswa', 'Kelas VII Ararat'),
-  ('Dimas Arya', 'dimas', 'dimas@clc.local', 'demo', 'siswa', 'Kelas VII Karmel'),
+  ('Nadia Prameswari', 'nadia', 'nadia@clc.local', 'demo', 'siswa', 'Kelas VII Ararat 1'),
+  ('Raka Mahendra', 'raka', 'raka@clc.local', 'demo', 'siswa', 'Kelas VII Ararat 1'),
+  ('Salsa Kirana', 'salsa', 'salsa@clc.local', 'demo', 'siswa', 'Kelas VII Ararat 2'),
+  ('Dimas Arya', 'dimas', 'dimas@clc.local', 'demo', 'siswa', 'Kelas VII Karmel 1'),
   ('Alya Putri', 'alya', 'alya@clc.local', 'demo', 'guru', NULL),
   ('Bima Santoso', 'bima', 'bima@clc.local', 'demo', 'guru', NULL),
   ('Admin SLC', 'admin', 'admin@slc.local', 'demo', 'admin', NULL),
