@@ -243,8 +243,8 @@ function AdminCoursesEditPanel({ courses }: { courses: Course[] }) {
         kapasitas: Number(row.kapasitas ?? row.Kapasitas ?? 3),
         kelas: String(row.kelas ?? row.Kelas ?? '').trim(),
       }));
-      if (!mataPelajaran.length || mataPelajaran.some((item) => !item.namaPelajaran || !item.deskripsi || !item.guru || !item.kelas || !Number.isInteger(item.kapasitas) || item.kapasitas < 1 || item.kapasitas > 3)) {
-        setNotice('File tidak valid. Isi nama_pelajaran, deskripsi, guru, kapasitas (1-3), dan kelas pada setiap baris.');
+      if (!mataPelajaran.length || mataPelajaran.some((item) => !item.namaPelajaran || !item.deskripsi || !item.guru || !item.kelas || !Number.isInteger(item.kapasitas) || item.kapasitas < 1)) {
+        setNotice('File tidak valid. Isi nama_pelajaran, deskripsi, guru, kapasitas (minimal 1), dan kelas pada setiap baris.');
         return;
       }
       const response = await fetch(`${API}/courses/import`, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ mataPelajaran }) });

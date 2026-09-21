@@ -1,6 +1,6 @@
 # SLC Platform
 
-Portal Student Led Conference: katalog program, booking siswa dengan kapasitas tiga orang per mata pelajaran dan maksimal tiga mata pelajaran per siswa. Setelah mendaftar, siswa tidak dapat membatalkan pilihannya; pembatalan hanya dapat dilakukan oleh guru pengampu mata pelajaran tersebut. Admin juga dapat mengatur hari, jam, dan ruang mengajar; jadwal tersebut tersinkron ke dashboard guru dan siswa.
+Portal Student Led Conference: katalog program, booking siswa dengan kapasitas yang dapat diatur admin per mata pelajaran dan maksimal tiga mata pelajaran per siswa. Setelah mendaftar, siswa tidak dapat membatalkan pilihannya; pembatalan hanya dapat dilakukan oleh guru pengampu mata pelajaran tersebut atau reset booking oleh admin. Admin juga dapat mengatur hari, jam, dan ruang mengajar; jadwal tersebut tersinkron ke dashboard guru dan siswa.
 
 Dashboard siswa, guru, dan kepala sekolah menggunakan banner SLC yang sama. Aset banner disimpan sebagai satu JPEG terkompresi di `apps/web/public/slc-banner.jpg` agar loading tetap ringan. Identitas website (nama dan logo) dikelola dari menu Pengaturan dan ditampilkan kembali pada Homepage serta navigasi Dashboard.
 
@@ -64,7 +64,7 @@ Format kolom import mata pelajaran:
 | --- | --- | --- | --- | --- |
 | Matematika | Belajar dengan tekun dan jujur | alya | 3 | Kelas VII Ararat |
 
-Semua kolom wajib. Kolom `guru` dapat diisi dengan nama, username, atau email guru. Nilai `kapasitas` harus berupa angka 1 sampai 3 dan `kelas` harus sesuai dengan master data kelas. Import disimpan sekaligus; jika ada baris tidak valid, tidak ada data pada file yang disimpan.
+Semua kolom wajib. Kolom `guru` dapat diisi dengan nama, username, atau email guru. Nilai `kapasitas` harus berupa bilangan bulat minimal 1 dan `kelas` harus sesuai dengan master data kelas. Import disimpan sekaligus; jika ada baris tidak valid, tidak ada data pada file yang disimpan.
 
 ### Membatalkan seluruh booking siswa
 

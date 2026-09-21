@@ -44,9 +44,9 @@ UPDATE users SET username = split_part(email, '@', 1) WHERE username IS NULL OR 
 CREATE UNIQUE INDEX IF NOT EXISTS users_username_unique ON users(username);
 ALTER TABLE users ALTER COLUMN username SET NOT NULL;
 ALTER TABLE mata_pelajaran ADD COLUMN IF NOT EXISTS kelas VARCHAR(40) NOT NULL DEFAULT 'Umum';
-UPDATE mata_pelajaran SET kapasitas = 3 WHERE kapasitas > 3;
 DO $$ BEGIN
-	ALTER TABLE mata_pelajaran ADD CONSTRAINT mata_pelajaran_kapasitas_maksimal CHECK (kapasitas > 0 AND kapasitas <= 3);
+	ALTER TABLE mata_pelajaran DROP CONSTRAINT IF EXISTS mata_pelajaran_kapasitas_maksimal;
+	ALTER TABLE mata_pelajaran ADD CONSTRAINT mata_pelajaran_kapasitas_positif CHECK (kapasitas > 0);
 EXCEPTION WHEN duplicate_object THEN NULL;
 END $$;
 UPDATE users SET kelas = 'Kelas VII Ararat' WHERE email IN ('nadia@clc.local', 'raka@clc.local', 'salsa@clc.local');

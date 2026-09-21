@@ -44,7 +44,7 @@ CREATE TABLE mata_pelajaran (
   deskripsi TEXT NOT NULL,
   guru_id INTEGER REFERENCES users(id) ON DELETE SET NULL,
   kelas VARCHAR(40) NOT NULL DEFAULT 'Umum',
-  kapasitas INTEGER NOT NULL DEFAULT 3 CHECK (kapasitas > 0 AND kapasitas <= 3),
+  kapasitas INTEGER NOT NULL DEFAULT 3 CHECK (kapasitas > 0),
   created_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
