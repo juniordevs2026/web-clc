@@ -11,7 +11,8 @@ type PageContent = { title: string; intro: string; sectionTitle: string; section
 type Pages = Record<'home' | 'profil' | 'sekolah' | 'program', PageContent>;
 type Screen = 'home' | 'login' | 'app';
 type LandingPage = 'home' | 'profil' | 'sekolah' | 'program';
-type NavKey = 'ringkasan' | 'program' | 'progres' | 'komunitas' | 'jadwal' | 'kelas' | 'guru' | 'siswa' | 'pengguna' | 'pelajaran' | 'laporan' | 'pendaftaran' | 'pages';
+type NavKey = 'ringkasan' | 'program' | 'progres' | 'komunitas' | 'jadwal' | 'kelas' | 'guru' | 'siswa' | 'pengguna' | 'pelajaran' | 'laporan' | 'pendaftaran' | 'pages' | 'rekapitulasi' | 'rekap_kelompok' | 'rekap_siswa';
+type NavItem = { key: NavKey; label: string; icon: typeof LayoutGrid; count?: number; children?: NavItem[] };
 type Course = { id: number; nama_pelajaran: string; deskripsi: string; kapasitas: number; kelas: string; guru_id: number; guru: string; terdaftar: number; booking_dibuka_at: string | null; booking_ditutup_at: string | null };
 type Booking = { mata_pelajaran_id: number };
 type UserRecord = { id: number; nama: string; username: string; email: string; role: Role; kelas: string | null; foto_profil: string | null };
@@ -20,6 +21,8 @@ type DashboardStats = { siswa: number; guru: number; program: number; pendaftara
 type TeamGroup = { id: number; nama_pelajaran: string; kelas: string; kapasitas: number; terdaftar: number; anggota: { id: number; nama: string; foto_profil: string | null }[] };
 type ScheduleGroup = TeamGroup & { guru: string; hari: string | null; jam_mulai: string | null; jam_selesai: string | null; ruang: string | null; team: TeamGroup['anggota']; proposals: { id: number; judul: string; deskripsi: string; status: 'menunggu' | 'disetujui' | 'ditolak'; feedback: string | null; pengusul: string; created_at: string }[] };
 type TeacherProposal = { id: number; judul: string; deskripsi: string; status: 'menunggu' | 'disetujui' | 'ditolak'; feedback: string | null; nama_pelajaran: string; kelas: string; pengusul: string; mata_pelajaran_id: number; terdaftar: number };
+type GroupReport = { id: number; nama_pelajaran: string; kelas: string; kapasitas: number; guru: string | null; terdaftar: number; siswa: { id: number; nama: string; email: string }[] };
+type StudentReport = { id: number; nama: string; email: string; kelas: string | null; jumlah_program: number; program: { id: number; nama_pelajaran: string }[] };
 const roleMeta: Record<Role, { label: string; name: string; initial: string }> = {
   siswa: { label: 'Ruang siswa', name: 'Nadia Prameswari', initial: 'NP' },
   guru: { label: 'Ruang guru', name: 'Alya Putri', initial: 'AP' },
@@ -35,11 +38,11 @@ const defaultPages: Pages = {
   program: { title: 'Temukan ruang untuk memimpin.', intro: 'Program SLC mengajak siswa mengeksplorasi minat, mengembangkan kompetensi, dan mempresentasikan pembelajaran melalui kolaborasi yang nyata.', sectionTitle: 'Program Student Led Conference', sectionText: 'Pilih program yang mendukung refleksi, komunikasi, kreativitas, dan keberanian untuk mengambil inisiatif.' },
 };
 
-const navByRole: Record<Role, { key: NavKey; label: string; icon: typeof LayoutGrid; count?: number }[]> = {
+const navByRole: Record<Role, NavItem[]> = {
   siswa: [{ key: 'ringkasan', label: 'Ringkasan', icon: LayoutGrid }, { key: 'program', label: 'Pilih program', icon: BookOpen, count: 4 }, { key: 'jadwal', label: 'Jadwal saya', icon: Gauge }, { key: 'komunitas', label: 'Team', icon: Users }],
   guru: [{ key: 'ringkasan', label: 'Ringkasan', icon: LayoutGrid }, { key: 'jadwal', label: 'Jadwal saya', icon: Gauge }, { key: 'kelas', label: 'Kelola kelas', icon: BookOpen, count: 2 }, { key: 'siswa', label: 'Daftar siswa', icon: Users }],
   kepala_sekolah: [{ key: 'ringkasan', label: 'Ringkasan', icon: LayoutGrid }, { key: 'laporan', label: 'Laporan program', icon: TrendingUp }, { key: 'pendaftaran', label: 'Pendaftaran', icon: ClipboardList }],
-  admin: [{ key: 'ringkasan', label: 'Ringkasan', icon: LayoutGrid }, { key: 'pages', label: 'Pages', icon: Pencil }, { key: 'kelas', label: 'Data kelas', icon: GraduationCap }, { key: 'guru', label: 'Data guru', icon: Users }, { key: 'siswa', label: 'Data siswa', icon: Users }, { key: 'pelajaran', label: 'Data mata pelajaran', icon: BookOpen }, { key: 'jadwal', label: 'Penjadwalan', icon: Gauge }, { key: 'laporan', label: 'Laporan sistem', icon: ClipboardList }],
+  admin: [{ key: 'ringkasan', label: 'Ringkasan', icon: LayoutGrid }, { key: 'pages', label: 'Pages', icon: Pencil }, { key: 'kelas', label: 'Data kelas', icon: GraduationCap }, { key: 'guru', label: 'Data guru', icon: Users }, { key: 'siswa', label: 'Data siswa', icon: Users }, { key: 'pelajaran', label: 'Data mata pelajaran', icon: BookOpen }, { key: 'jadwal', label: 'Penjadwalan', icon: Gauge }, { key: 'rekapitulasi', label: 'Rekapitulasi', icon: ClipboardList, children: [{ key: 'rekap_kelompok', label: 'Rekap kelompok', icon: Users }, { key: 'rekap_siswa', label: 'Rekap siswa', icon: GraduationCap }] }, { key: 'laporan', label: 'Laporan sistem', icon: ClipboardList }],
 };
 
 async function get<T>(path: string): Promise<T> { const response = await authFetch(path); if (!response.ok) throw new Error('API unavailable'); return response.json(); }
@@ -84,24 +87,44 @@ export default function App() {
     <aside className={mobileNav ? 'sidebar open' : 'sidebar'}>
       <div className="brand"><BrandLogo branding={branding} /><button className="icon-button close-nav" onClick={() => setMobileNav(false)}><X size={18} /></button></div>
       <div className="workspace-label">{meta.label}</div>
-      <nav>{navItems.map(({ key, label, icon: Icon, count }) => <button className={activeNav === key ? 'nav-item active' : 'nav-item'} key={key} onClick={() => { setActiveNav(key); setMobileNav(false); }}><Icon size={18} /> {label} {count && <span className="nav-count">{count}</span>}</button>)}</nav>
+      <nav>{navItems.map((item) => item.children
+        ? <div className="nav-group" key={item.key}><div className="nav-group-title"><item.icon size={18} /> {item.label}</div>{item.children.map(({ key, label, icon: Icon }) => <button className={activeNav === key ? 'nav-item nav-subitem active' : 'nav-item nav-subitem'} key={key} onClick={() => { setActiveNav(key); setMobileNav(false); }}><Icon size={16} /> {label}</button>)}</div>
+        : <button className={activeNav === item.key ? 'nav-item active' : 'nav-item'} key={item.key} onClick={() => { setActiveNav(item.key); setMobileNav(false); }}><item.icon size={18} /> {item.label} {item.count && <span className="nav-count">{item.count}</span>}</button>)}</nav>
       <div className="sidebar-bottom">{role === 'admin' && <button className="nav-item" onClick={() => setSettingsOpen(true)}><Settings2 size={18} /> Pengaturan</button>}<button className="nav-item" onClick={() => setHelpOpen(true)}><CircleHelp size={18} /> Pusat bantuan</button><button className="nav-item" onClick={() => { sessionStorage.removeItem('clc_token'); setCurrentUser(null); setScreen('home'); }}><LogOut size={18} /> Keluar</button></div>
       <button className="profile-mini" onClick={() => setProfileOpen(true)}><div className="avatar">{currentUser?.foto_profil ? <img src={currentUser.foto_profil} alt="" /> : userInitials(currentUser?.nama ?? meta.name)}</div><div><strong>{currentUser?.nama ?? meta.name}</strong><small>{role.replace('_', ' ')}</small></div><ChevronDown size={16} className="muted" /></button>
     </aside>
     <main className="main-content">
-      <header className="topbar"><button className="icon-button menu-button" onClick={() => setMobileNav(true)}><Menu size={21} /></button><div className="crumb"><span>Ruang kerja</span><span>/</span><b>{navItems.find((item) => item.key === activeNav)?.label}</b></div><div className="top-actions"><span className="role-label">{currentUser?.nama ?? meta.name} · {role.replace('_', ' ')}</span><button className="icon-button" onClick={() => setHelpOpen(true)} aria-label="Cari"><Search size={19} /></button><button className="avatar top-avatar" onClick={() => setProfileOpen(true)}>{currentUser?.foto_profil ? <img src={currentUser.foto_profil} alt="" /> : userInitials(currentUser?.nama ?? meta.name)}</button></div></header>
+      <header className="topbar"><button className="icon-button menu-button" onClick={() => setMobileNav(true)}><Menu size={21} /></button><div className="crumb"><span>Ruang kerja</span><span>/</span><b>{navItems.flatMap((item) => item.children ?? [item]).find((item) => item.key === activeNav)?.label ?? 'Ringkasan'}</b></div><div className="top-actions"><span className="role-label">{currentUser?.nama ?? meta.name} · {role.replace('_', ' ')}</span><button className="icon-button" onClick={() => setHelpOpen(true)} aria-label="Cari"><Search size={19} /></button><button className="avatar top-avatar" onClick={() => setProfileOpen(true)}>{currentUser?.foto_profil ? <img src={currentUser.foto_profil} alt="" /> : userInitials(currentUser?.nama ?? meta.name)}</button></div></header>
       <div className="content-wrap">
         {activeNav === 'ringkasan' && role === 'siswa' && <StudentView studentId={currentUser?.id ?? 1} bookingKey={booked.join(',')} notice={notice} />}
         {activeNav === 'ringkasan' && role === 'guru' && <TeacherDashboard courses={courses} user={currentUser} />}
         {activeNav === 'ringkasan' && role === 'kepala_sekolah' && <LivePrincipalView courses={courses} stats={stats} />}
         {activeNav === 'ringkasan' && role === 'admin' && <LiveAdminView courses={courses} stats={stats} />}
-        {activeNav !== 'ringkasan' && <WorkspacePanel role={role} nav={activeNav} courses={courses} booked={booked} studentClass={studentClass} userId={currentUser?.id ?? 1} onBook={book} pages={pages} />}
+        {activeNav === 'rekap_kelompok' && role === 'admin' && <AdminGroupReportPanel />}
+        {activeNav === 'rekap_siswa' && role === 'admin' && <AdminStudentReportPanel />}
+        {activeNav !== 'ringkasan' && activeNav !== 'rekap_kelompok' && activeNav !== 'rekap_siswa' && <WorkspacePanel role={role} nav={activeNav} courses={courses} booked={booked} studentClass={studentClass} userId={currentUser?.id ?? 1} onBook={book} pages={pages} />}
       </div>
     </main>
     {settingsOpen && role === 'admin' && <SettingsPanel onClose={() => setSettingsOpen(false)} />}
     {helpOpen && <UtilityPanel type="help" onClose={() => setHelpOpen(false)} />}
     {profileOpen && currentUser && <ProfilePanel userId={currentUser.id} onClose={() => setProfileOpen(false)} onSaved={(profile) => setCurrentUser({ ...currentUser, ...profile })} />}
   </div>;
+}
+
+function AdminGroupReportPanel() {
+  const [items, setItems] = useState<GroupReport[]>([]);
+  const [notice, setNotice] = useState('');
+  useEffect(() => { get<GroupReport[]>('/reports/groups').then(setItems).catch(() => setNotice('Rekap kelompok belum dapat dimuat.')); }, []);
+  return <><section className="page-intro"><p className="eyebrow">ADMIN / REKAP KELOMPOK</p><h1>Kelompok <em>program.</em></h1><p>Daftar kelompok siswa yang telah memilih program mata pelajaran dari kelas VII sampai kelas IX.</p></section>{notice && <div className="notice">{notice}</div>}<section className="report-list">{items.map((item) => <article className="report-card" key={item.id}><div className="report-card-heading"><div><p className="eyebrow">{item.kelas}</p><h2>{item.nama_pelajaran}</h2><span>{item.guru ?? 'Guru belum ditentukan'} · {item.terdaftar}/{item.kapasitas} siswa</span></div><span className="status-pill"><Check size={12} /> Terdaftar</span></div><div className="roster-row roster-head"><span>Siswa</span><span>Email</span><span>Status</span></div>{item.siswa.map((student) => <div className="roster-row" key={student.id}><span className="roster-person"><span className="tiny-avatar">{userInitials(student.nama)}</span>{student.nama}</span><span>{student.email}</span><span className="status-pill"><Check size={12} /> Memilih</span></div>)}</article>)}{!items.length && !notice && <div className="empty-workspace"><h2>Belum ada siswa yang memilih program.</h2></div>}</section></>;
+}
+
+function AdminStudentReportPanel() {
+  const [items, setItems] = useState<StudentReport[]>([]);
+  const [status, setStatus] = useState<'semua' | 'sudah' | 'belum'>('semua');
+  const [notice, setNotice] = useState('');
+  useEffect(() => { get<StudentReport[]>('/reports/students').then(setItems).catch(() => setNotice('Rekap siswa belum dapat dimuat.')); }, []);
+  const visibleItems = items.filter((item) => status === 'semua' || (status === 'sudah' ? item.jumlah_program > 0 : item.jumlah_program === 0));
+  return <><section className="page-intro"><p className="eyebrow">ADMIN / REKAP SISWA</p><h1>Status pilihan <em>program.</em></h1><p>Periksa siswa yang sudah memilih program mata pelajaran dan siswa yang masih belum memilih.</p></section><div className="report-filter"><button className={status === 'semua' ? 'dark-button' : 'light-button'} onClick={() => setStatus('semua')}>Semua ({items.length})</button><button className={status === 'sudah' ? 'dark-button' : 'light-button'} onClick={() => setStatus('sudah')}>Sudah memilih ({items.filter((item) => item.jumlah_program > 0).length})</button><button className={status === 'belum' ? 'dark-button' : 'light-button'} onClick={() => setStatus('belum')}>Belum memilih ({items.filter((item) => item.jumlah_program === 0).length})</button></div>{notice && <div className="notice">{notice}</div>}<section className="student-table report-student-table"><div className="roster-row roster-head"><span>Siswa</span><span>Kelas</span><span>Program dipilih</span><span>Status</span></div>{visibleItems.map((item) => <div className="roster-row" key={item.id}><span className="roster-person"><span className="tiny-avatar">{userInitials(item.nama)}</span><span><strong>{item.nama}</strong><small>{item.email}</small></span></span><span>{item.kelas ?? 'Belum ada kelas'}</span><span>{item.program.length ? item.program.map((program) => program.nama_pelajaran).join(', ') : '—'}</span><span className={item.jumlah_program ? 'status-pill' : 'status-pill status-muted'}>{item.jumlah_program ? <><Check size={12} /> Sudah memilih</> : 'Belum memilih'}</span></div>)}</section></>;
 }
 
 function WorkspacePanel({ role, nav, courses, booked, studentClass, userId, onBook, pages }: { role: Role; nav: NavKey; courses: Course[]; booked: number[]; studentClass: string; userId: number; onBook: (course: Course) => void; pages: Pages }) {
@@ -117,6 +140,9 @@ function WorkspacePanel({ role, nav, courses, booked, studentClass, userId, onBo
     pengguna: { eyebrow: 'KELOLA PENGGUNA', title: 'Orang-orang di SLC.', description: 'Kelola akun siswa, guru, dan kepala sekolah.' },
     pelajaran: { eyebrow: 'DATA MATA PELAJARAN', title: 'Bangun program baru.', description: 'Atur mata pelajaran, kelas, dan guru pengampu.' },
     laporan: { eyebrow: role === 'admin' ? 'LAPORAN SISTEM' : 'LAPORAN PROGRAM', title: 'Data untuk keputusan yang baik.', description: 'Ringkasan aktivitas dan kinerja SLC.' },
+    rekapitulasi: { eyebrow: 'REKAPITULASI', title: 'Rekapitulasi data SLC.', description: 'Pantau pilihan program siswa dari kelas VII hingga IX.' },
+    rekap_kelompok: { eyebrow: 'ADMIN / REKAP KELOMPOK', title: 'Kelompok program siswa.', description: 'Seluruh siswa yang memilih program mata pelajaran, dikelompokkan berdasarkan kelas dan program.' },
+    rekap_siswa: { eyebrow: 'ADMIN / REKAP SISWA', title: 'Status pilihan program.', description: 'Lihat siswa yang sudah dan belum memilih program mata pelajaran.' },
     pendaftaran: { eyebrow: 'PENDAFTARAN', title: 'Pendaftaran SLC.', description: 'Pantau minat siswa pada setiap program.' },
     pages: { eyebrow: 'ADMIN / PAGES', title: 'Edit halaman publik.', description: 'Ubah konten yang tampil pada halaman publik SLC.' },
   };

@@ -323,6 +323,43 @@ app.get('/api/dashboard', requireAuth(), asyncRoute(async (_req, res) => {
   res.json(result.rows[0]);
 }));
 
+app.get('/api/reports/groups', requireAdmin, asyncRoute(async (_req, res) => {
+  const { rows } = await pool.query(`
+    SELECT mp.id, mp.nama_pelajaran, mp.kelas, mp.kapasitas, u.nama AS guru,
+      COUNT(siswa.id)::int AS terdaftar,
+      COALESCE(json_agg(
+        json_build_object('id', siswa.id, 'nama', siswa.nama, 'email', siswa.email)
+        ORDER BY siswa.nama
+      ) FILTER (WHERE siswa.id IS NOT NULL), '[]'::json) AS siswa
+    FROM mata_pelajaran mp
+    LEFT JOIN users u ON u.id = mp.guru_id
+    LEFT JOIN booking_pelajaran bp ON bp.mata_pelajaran_id = mp.id
+    LEFT JOIN users siswa ON siswa.id = bp.siswa_id AND siswa.role = 'siswa' AND siswa.kelas = mp.kelas
+    GROUP BY mp.id, u.nama
+    HAVING COUNT(siswa.id) > 0
+    ORDER BY mp.kelas, mp.nama_pelajaran
+  `);
+  res.json(rows);
+}));
+
+app.get('/api/reports/students', requireAdmin, asyncRoute(async (_req, res) => {
+  const { rows } = await pool.query(`
+    SELECT siswa.id, siswa.nama, siswa.email, siswa.kelas,
+      COUNT(bp.id)::int AS jumlah_program,
+      COALESCE(json_agg(
+        json_build_object('id', mp.id, 'nama_pelajaran', mp.nama_pelajaran)
+        ORDER BY mp.nama_pelajaran
+      ) FILTER (WHERE mp.id IS NOT NULL), '[]'::json) AS program
+    FROM users siswa
+    LEFT JOIN booking_pelajaran bp ON bp.siswa_id = siswa.id
+    LEFT JOIN mata_pelajaran mp ON mp.id = bp.mata_pelajaran_id
+    WHERE siswa.role = 'siswa'
+    GROUP BY siswa.id
+    ORDER BY siswa.kelas, siswa.nama
+  `);
+  res.json(rows);
+}));
+
 app.get('/api/classes/:guruId', requireAuth(['guru']), asyncRoute(async (req, res) => {
   const guruId = z.coerce.number().int().positive().parse(req.params.guruId);
   const auth = (req as AuthRequest).user;
